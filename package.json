@@ -1,0 +1,67 @@
+{
+  "name": "dropdowns-js",
+  "author": "ITA",
+  "description": "A React library providing customizable search dropdown components with single and multi-selection capabilities.",
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "module": "dist/dropdowns-js.es.js",
+  "main": "dist/dropdowns-js.cjs.js",
+  "exports": {
+    ".": {
+      "import": "./dist/dropdowns-js.es.js",
+      "require": "./dist/dropdowns-js.cjs.js"
+    },
+    "./style.css": "./dist/dropdowns-js.css"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/isaiahtshabalala/dropdowns-js.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "prop-types": "^15.8.1",
+    "some-common-functions-js": "^1.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "vite": "^7.2.4"
+  },
+  "peerDependencies": {
+    "react": ">=17",
+    "react-dom": ">=17"
+  },
+  "files": [
+    "dist"
+  ],
+ "keywords": [
+    "react",
+    "dropdown",
+    "searchable-dropdown",
+    "multi-select",
+    "multiselection",
+    "multiselect-dropdown",
+    "single-select",
+    "react-component",
+    "combobox",
+    "select-list",
+    "context-api",
+    "state-management",
+    "searchable",
+    "object-dropdown",
+    "primitive-dropdown",
+    "sorted-dropdown",
+    "ui-components",
+    "form-controls",
+    "checkbox-dropdown",
+    "tag-selection",
+    "lightweight"
+  ]
+}

@@ -1,0 +1,98 @@
+/*File namme: ./src/dropdown.css
+* Description: part of the css used for styling the dropdowns,
+                including dealing with responsiveness.
+* Date        Dev  Version  Description
+* 2024/10/28  ITA  1.00     Genesis.
+*/
+
+/* Styling for the dropdown */
+.dropdown-js {
+    position: relative;
+    display: inline-block;
+  }
+
+.dropdown-js-menu { /* For the div wrapper of dropdown items */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  opacity: 1;
+  overflow-y: auto; /* enable vertical scrolling */
+}
+
+  
+/* Wrapper for input and icon */
+.dropdown-js-input-wrapper {
+  display: inline-flex; 
+  align-items: center;
+}
+
+.dropdown-js-input {
+  display: flex; /* Input takes up remaining space */
+  flex: 1;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.dropdown-js-padding {
+  padding: 5px;
+}
+  
+@media (max-width: 480px) {
+  .dropdown-js-menu {
+    width: 100vw;
+    max-height: 50vh; /* smaller on mobile */
+    left: 0;
+    right: 0;
+    border-radius: 0;
+  }
+}
+
+/* Container limits layout growth */
+.dropdown-js-selected-container {
+  max-height: 88px;        /* 2–3 rows of chips */
+  overflow-y: auto;
+}
+
+/* Items inside container */
+.dropdown-js-selected-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.selected-container {
+  max-height: 72px;
+  overflow-y: auto;
+}
+
+/* Chips */
+.dropdown-js-selected-items span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-js-arrow-container {
+  padding-left: 4px;
+  flex-shrink: 0;
+}
+
+.dropdown-js-arrow {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.8em;
+  line-height: 1;
+  transition: transform 150ms ease, opacity 150ms ease;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+
+.dropdown-js-show{display:block}
+.dropdown-js-hide{display:none}
+.dropdown-js-toggle-icon-size{font-size:18px}
+.dropdown-js-rounded{border-radius: 3px}
