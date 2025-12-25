@@ -209,7 +209,7 @@ export default function MyComponent2() {
     );
 }
 ```  
-## 7. MultiselectionDropdown usage example 
+## 6. MultiselectionDropdown usage example 
 ```  
 import { MultiSelectionDropdown, useCollectionsContext } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
@@ -269,7 +269,7 @@ export default function MyComponent3() {
 }
 ```  
 
-## 8. MultiSelectionDropdownObj usage example
+## 7. MultiSelectionDropdownObj usage example
 ```  
 import 'dropdowns-js/style.css';
 import { MultiSelectionDropdownObj, useCollectionsContext } from 'dropdowns-js';
@@ -356,7 +356,7 @@ export default function MyComponent4() {
     );
 }
 ```  
-## 9. Multiple dropdown usage example
+## 8. Multiple dropdown usage example
 ```
 export default function MyComponent5() {
     const [output, setOutput] = useState();

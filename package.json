@@ -3,7 +3,7 @@
   "author": "ITA",
   "description": "A React library providing customizable search dropdown components with single and multi-selection capabilities.",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.2",
   "type": "module",
   "module": "dist/dropdowns-js.es.js",
   "main": "dist/dropdowns-js.cjs.js",

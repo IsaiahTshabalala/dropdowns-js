@@ -4,4 +4,7 @@ Genesis.
 ## 2025/12/25 - Version 1.0.1 - ITA
 Add more clarity to documentation: dropdown component attributes.
   
+## 2025/12/25 - Version 1.02 - ITA
+Sync version with package.json version.
+  
 
