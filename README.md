@@ -12,8 +12,8 @@ Searchable dropdown components for React applications.
 npm install dropdowns-js
 ```  
   
-## 1. Wrap your App
-All components must be wrapped in the CollectionsProvider to manage the dropdown states.
+## 1. Wrap your Component
+All components must be separately wrapped in the CollectionsProvider to manage the dropdown states.
 
 ```
 // App.jsx
@@ -59,7 +59,7 @@ export default function MyComponent {
 }
 ``` 
 **Context functions**  
-`addCollection(collectionName, anArray, maxNumSelections = null, primitiveType = true, ...sortFields)` 
+`addCollection(collectionName, anArray, maxNumSelections = null, primitiveType = true, ...sortFields)`  
 Add a new collection of data to be displayed in a dropdown for selection.  
   
 
@@ -81,10 +81,19 @@ Get the selected items (array) of the specified collection. An error is thrown f
 `getMaxNumSelections(collectionName)`  
 Get the maximum number of items that can be selected on this collection. An error is thrown for a non-existent collection name is specified.  
   
-## 3. DropdownStyle and ButtonStyle
-- The DropdownStyle attribute must be provided with an object with field values { color, backgroundColor }.
-- The ButtonStyle attribute must be provided also provided an object with field values { color, backgroundColor }
-    
+## 3. Dropdown Component Attributes
+`label` - to be used for aria-label.  
+  
+`isDisabled` - disables the component when set to true. Default = false.  
+  
+`collectionName` - name of the collection to populate the dropdown.  
+  
+`dropdownStyle` - for providing styling the dropdown. Fields: {color, backgroundColor}.  
+  
+`buttonStyle` - for providing styling the DONE button (pressed after completing selection in multi-selection dropdowns). Fields: {color, backgroundColor}.  
+  
+`onItemSelected` - a providing a method to execute on selection of items.
+  
 ## 4. Dropdown usage example
 This dropdown is to be used when the underlying data is a primitive type array.  
 ```  
@@ -200,7 +209,7 @@ export default function MyComponent2() {
     );
 }
 ```  
-## 6. MultiselectionDropdown usage example 
+## 7. MultiselectionDropdown usage example 
 ```  
 import { MultiSelectionDropdown, useCollectionsContext } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
@@ -260,7 +269,7 @@ export default function MyComponent3() {
 }
 ```  
 
-## 7. MultiSelectionDropdownObj usage example
+## 8. MultiSelectionDropdownObj usage example
 ```  
 import 'dropdowns-js/style.css';
 import { MultiSelectionDropdownObj, useCollectionsContext } from 'dropdowns-js';
@@ -347,7 +356,7 @@ export default function MyComponent4() {
     );
 }
 ```  
-### 8. Multiple dropdown usage example
+## 9. Multiple dropdown usage example
 ```
 export default function MyComponent5() {
     const [output, setOutput] = useState();
