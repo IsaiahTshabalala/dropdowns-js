@@ -12,6 +12,7 @@
  *                           Import context directly. Variable names moved to VarNames object.
  * 2024/10/28  ITA    1.02   Improve the responsiveness of the dropdown.
  * 2025/12/21  ITA    1.03   Performed further tweaks and tests, preparing this component for npm publishing. 
+ * 2025/12/26  ITA    1.04   Changed the arrow symbols to + and - for better cross-platform rendering.
  */
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
@@ -185,7 +186,7 @@ export function MultiSelectionDropdownObj({
                 </div>
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded' onClick={e=> toggleShowList(e)}>
-                    <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "\u25BE" : "\u25B4"}</span>
+                    <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
 

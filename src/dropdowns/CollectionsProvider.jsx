@@ -17,6 +17,7 @@
  * 2024/08/07  ITA   1.04     Collections reference to retain the same reference as collections are added to it. To reduce re-renders of components wrapped in it.
  *                            Ensure that the maximum number of selections parameter is passed down during the construction of a collection object.
  * 2024/09/18  ITA   1.05     Export ready-made context, eliminating the need for components using this context to call useContext.
+ * 2025/12/26  ITA   1.06     Fix comparison function to properly identify object type data.
 */
 import { createContext, useContext, useRef } from 'react';
 import PropTypes from 'prop-types';
@@ -149,7 +150,8 @@ class Collection {
          * uses a sort function, whose call gets here.
         */
 
-        if (typeof item1 === 'object' && typeof item2 === 'object') {
+        if ((Object.prototype.toString.call(item1) === '[object Object]')
+            && (Object.prototype.toString.call(item2) === '[object Object]')) { // Object type data.
             if (this.sortFields.length > 0)
                 return objCompare(item1, item2, ...this.sortFields);
         }

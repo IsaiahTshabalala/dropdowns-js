@@ -16,6 +16,7 @@
 * 2024/10/28   ITA   1.05     Improve the responsiveness of the dropdown.
 * 2025/12/18   ITA   1.06     Renamed to from Dropdown2 to DropdownObj, and performed further tweaks and tests towards preparing this component
                               for npm publishing.
+* 2025/12/26   ITA   1.07     Changed the arrow symbols to + and - for better visibility across different platforms.
 */
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
@@ -140,7 +141,7 @@ export function DropdownObj({label, // label with which to describe the dropdown
                         placeholder='Type to search' value={searchText} />
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded' onClick={e=> toggleShowList(e)}>
-                    <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "\u25BE" : "\u25B4"}</span>
+                    <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
             

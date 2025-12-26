@@ -7,4 +7,9 @@ Add more clarity to documentation: dropdown component attributes.
 ## 2025/12/25 - Version 1.02 - ITA
 Sync version with package.json version.
   
+## 2025/12/26 - Version 1.03 - ITA
+* Replace the arrow icons with +/- characters, for better cross-platform rendering.  
+* Collection class: fix comparison function to properly compare object type data.
+
+  
 
