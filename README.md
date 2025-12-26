@@ -88,7 +88,7 @@ Get the maximum number of items that can be selected on this collection. An erro
   
 `collectionName` - name of the collection to populate the dropdown.  
   
-`dropdownStyle` - for providing styling the dropdown. Fields: {color, backgroundColor}.  
+`dropdownStyle` - for providing styling the dropdown. Fields: {color, backgroundColor, borderColor (optional)}.  
   
 `buttonStyle` - for providing styling the DONE button (pressed after completing selection in multi-selection dropdowns). Fields: {color, backgroundColor}.  
   

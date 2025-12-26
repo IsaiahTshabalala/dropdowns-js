@@ -24,7 +24,7 @@ function App() {
                 // <DropdownTest/>
                 // <DropdownObjTest/>
                 // <MultiSelectionDropdownTest/>
-                <MultiSelectionDropdownObjTest/>
+                 <MultiSelectionDropdownObjTest/>
             }
         </CollectionsProvider>
     );
