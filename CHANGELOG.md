@@ -17,5 +17,9 @@ Sync version with package.json version.
 ## 2025/12/27 - Version 1.05 - ITA
 - Updated the dependency package some-common-functions-js.  
 
+## 2025/12/27 - Version 1.06 - ITA
+- Switched to ESM-only build output for improved compatibility with CRA and modern bundlers.
+- Simplified module resolution to avoid dual ESM/CJS ambiguity.
+
   
 

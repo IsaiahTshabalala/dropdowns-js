@@ -9,17 +9,12 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.js'),
       name: 'DropdownsJS',
-      formats: ['es', 'cjs'],
+      formats: ['es'],
       fileName: (format) => `dropdowns-js.${format}.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-      },
+      external: ['react', 'react-dom']
     },
   },
 })
+
