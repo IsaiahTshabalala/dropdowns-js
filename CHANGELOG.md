@@ -12,7 +12,10 @@ Sync version with package.json version.
 * Collection class: fix comparison function to properly compare object type data.
 
 ## 2025/12/26 - Version 1.04 - ITA
-- Mention backgroundColor as an additional attribute (optional) when specifying the dropdownStyle.
+- Mention backgroundColor as an additional attribute (optional) when specifying the dropdownStyle.  
+
+## 2025/12/27 - Version 1.05 - ITA
+- Updated the dependency package some-common-functions-js.  
 
   
 
