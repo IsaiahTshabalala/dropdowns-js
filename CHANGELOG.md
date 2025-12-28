@@ -4,22 +4,27 @@ Genesis.
 ## 2025/12/25 - Version 1.0.1 - ITA
 Add more clarity to documentation: dropdown component attributes.
   
-## 2025/12/25 - Version 1.02 - ITA
+## 2025/12/25 - Version 1.0.2 - ITA
 Sync version with package.json version.
   
-## 2025/12/26 - Version 1.03 - ITA
+## 2025/12/26 - Version 1.0.3 - ITA
 * Replace the arrow icons with +/- characters, for better cross-platform rendering.  
 * Collection class: fix comparison function to properly compare object type data.
 
-## 2025/12/26 - Version 1.04 - ITA
+## 2025/12/26 - Version 1.0.4 - ITA
 - Mention backgroundColor as an additional attribute (optional) when specifying the dropdownStyle.  
 
-## 2025/12/27 - Version 1.05 - ITA
+## 2025/12/27 - Version 1.0.5 - ITA
 - Updated the dependency package some-common-functions-js.  
 
-## 2025/12/27 - Version 1.06 - ITA
+## 2025/12/27 - Version 1.0.6 - ITA
 - Switched to ESM-only build output for improved compatibility with CRA and modern bundlers.
 - Simplified module resolution to avoid dual ESM/CJS ambiguity.
+
+## 2025/12/27 - Version 1.0.7 - ITA & Gemini
+- Updated the dependency package some-common-function-js.
+- Updated vite.config to tell vite to treat React as an external dependency.
+- Updated package.json to treat react and react-dom as a dev dependency as well, in addition to being a peer dependency.
 
   
 

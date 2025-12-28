@@ -3,12 +3,15 @@
   "author": "ITA",
   "description": "A React library providing customizable search dropdown components with single and multi-selection capabilities.",
   "private": false,
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
-  "module": "dist/dropdowns-js.es.js",
-  "main": "dist/dropdowns-js.es.js",
+  "main": "./dist/dropdowns-js.cjs.js",
+  "module": "./dist/dropdowns-js.es.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/dropdowns-js.cjs.js",
       "import": "./dist/dropdowns-js.es.js"
     },
     "./style.css": "./dist/dropdowns-js.css"
@@ -26,11 +29,13 @@
   },
   "dependencies": {
     "prop-types": "^15.8.1",
-    "some-common-functions-js": "^1.1.4"
+    "some-common-functions-js": "^1.1.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "vite": "^7.2.4"
   },
   "peerDependencies": {
