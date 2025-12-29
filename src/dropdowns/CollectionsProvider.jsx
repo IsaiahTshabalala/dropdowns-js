@@ -18,10 +18,11 @@
  *                            Ensure that the maximum number of selections parameter is passed down during the construction of a collection object.
  * 2024/09/18  ITA   1.05     Export ready-made context, eliminating the need for components using this context to call useContext.
  * 2025/12/26  ITA   1.06     Fix comparison function to properly identify object type data.
+ * 2025/12/29  ITA   1.07     Remove the sorting of objects by field order. It turns out to be expensive and also unnecessary.
 */
 import { createContext, useContext, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { objCompare, compare, getPaths, getSortedObject } from 'some-common-functions-js';
+import { objCompare, compare, getPaths } from 'some-common-functions-js';
 
 const collectionsContext = createContext();
 
@@ -42,8 +43,7 @@ export function CollectionsProvider({children}) {
             collectionsRef.current[collectionName] = new PrimitiveTypeCollection(collectionName, data, maxNumSelections, ...sortFields);
         }
         else {
-            const theData = data.map(obj=> getSortedObject(obj)); // This is to ensure field order uniformity.
-            collectionsRef.current[collectionName] = new Collection(collectionName, theData, maxNumSelections, ...sortFields);
+            collectionsRef.current[collectionName] = new Collection(collectionName, data, maxNumSelections, ...sortFields);
         }
     } // function addCollection(collectionName, data, maxNumSelections = null, primitiveType = false) { 
 
@@ -128,11 +128,6 @@ class Collection {
         this.maxNumSelections = pMaxNumSelections;
         this.data = [...pData];
 
-        /* For object type data, ensure each data element is stored in sorted field order, to ensure uniformity.
-           Beneficial for stringified object comparison */
-        if ((pData.length > 0) && (getPaths(pData[0]) > 0))
-            this.data = pData.map(obj=> getSortedObject(obj));
-
         this.sortData();
     } // constructor(pCollectionName, pData) {
 
@@ -165,7 +160,7 @@ class Collection {
     } // comparisonFunction = (item1, item2)=> {
 
     updateData(pData) {
-        this.data = pData.map(obj=> getSortedObject(obj)); /*Each object array element is stored sorted field order. */
+        this.data = [...pData];
         this.sortData();
 
         // Remove all the selected items not in the updated data.
@@ -187,17 +182,15 @@ class Collection {
             return;
 
         //  Filter out items not in data.
-        let paths = null;
+        let paths = getPaths(this.data[0]); // Get the fields.
         pSelectedItems = pSelectedItems.filter(selectedItem=> {
             return this.data.findIndex(dataItem=> {
-                if (paths === null) // It is assumed that the data items share exactly the same fields.
-                    paths = getPaths(dataItem);
+                // It is assumed that the data items share exactly the same fields.
                 return objCompare(dataItem, selectedItem, ...paths) === 0;
             }) >= 0;
         }); // pSelectedItems = pSelectedItems.filter(selectedItem=> {
 
         this.selectedItems = pSelectedItems.toSorted(this.comparisonFunction);
-        this.selectedItems = this.selectedItems.map(obj=> getSortedObject(obj)); // To ensure field order uniformity in storage of selected items.
     } // setSelectedItems(pSelectedItems) {
 
     getData() {

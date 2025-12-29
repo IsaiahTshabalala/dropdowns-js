@@ -14,6 +14,7 @@
  * 2024/10/28  ITA   1.05      Improve the responsiveness of the Dropdown.
  * 2025/12/18  ITA   1.06      Performed further tweaks and tests, preparing this component for npm publishing.
  * 2025/12/26  ITA   1.07      Changed the arrow symbols to + and - for better visibility across different platforms.
+ * 2025/12/29  ITA   1.08      Placeholder must show the name of the data, as provided by the label attribute.
  */
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
@@ -115,7 +116,7 @@ export function Dropdown({label, // label with which to describe the dropdown.
                         type='text' id='searchDropDown' name='searchDropDown'
                         style={inputStyle}
                         aria-label={`Type to Search for ${label}`} aria-required={true} onChange={e=> handleSearch(e)}
-                        disabled={isDisabled} placeholder='Type to search' value={searchText} />
+                        disabled={isDisabled} placeholder={`Type to Search for ${label}`} value={searchText} />
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded' onClick={e=> toggleShowList(e)}>
                     <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>

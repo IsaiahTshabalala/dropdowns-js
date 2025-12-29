@@ -26,5 +26,9 @@ Sync version with package.json version.
 - Updated vite.config to tell vite to treat React as an external dependency.
 - Updated package.json to treat react and react-dom as a dev dependency as well, in addition to being a peer dependency.
 
+## 2025/12/27 - Version 1.0.8
+- Efficient use of the object functions from some-common-functions-js, which are recursive, in the CollectionsProvider context hook.
+- Placeholder text in the text input of the dropdowns to also show the name of the data, as provided by the label attribute.
+
   
 

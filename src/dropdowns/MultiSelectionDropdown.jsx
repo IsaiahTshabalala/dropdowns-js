@@ -12,6 +12,7 @@
  * 2024/10/28  ITA    1.03      Improve the responsiveness of the dropdown.
  * 2025/12/18  ITA    1.06      Performed further tweaks and tests, to prepare this component for npm publishing.
  * 2025/12/26  ITA    1.07      Changed the arrow symbols to + and - for better cross-platform rendering.
+ * 2025/12/29  ITA    1.09      Placeholder to show the name of the data, as provided by the label attribute.
  */
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
@@ -154,7 +155,7 @@ export function MultiSelectionDropdown({
                             style={inputStyle}
                             type='text' id='searchDropDown' name='searchDropDown' autoComplete='off'
                             aria-label={`Type to search for ${label}`} aria-required={true} onChange={e=> handleSearch(e)}
-                            placeholder='Type to search' value={searchText} />
+                            placeholder={`Type to Search for ${label}`} value={searchText} />
                 </div>
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded' onClick={e=> toggleShowList(e)}>
