@@ -30,5 +30,12 @@ Sync version with package.json version.
 - Efficient use of the object functions from some-common-functions-js, which are recursive, in the CollectionsProvider context hook.
 - Placeholder text in the text input of the dropdowns to also show the name of the data, as provided by the label attribute.
 
+## 2026/01/01 - Version 1.0.9
+Updated the current package to use the latest some-common-functions-js package. Given the changes that were done to change recursive functions to iterative, thereby overcoming stack limits imposed by browsers.
+
+  
+
+
+
   
 
