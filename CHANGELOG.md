@@ -36,6 +36,9 @@ Updated the current package to use the latest some-common-functions-js package. 
 ## 2026/01/11 to 2026/01/16 - Version 1.1.1
 - Collections context and provider removed, and no longer necessary for use by the consumers of this package.
 
+## 2026/01/16 to 2026/01/16 - Version 1.1.2
+- Removed the multiple dropdown usage example from the README file. It had not been updated when Collections context and provider was removed. The remaining dropdown usage examples suffice.
+
   
 
 
