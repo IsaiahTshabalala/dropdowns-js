@@ -4,40 +4,93 @@
  * Description: 
  * Provide a multi-selection, searchable dropdown that takes an array of primitve types.
  * * --------------------------------------------------------------------------------
- * Date        Dev    Version   Description
- * 2024/02/27  ITA    1.00      Genesis.
- * 2024/09/17  ITA    1.02      Toggle (add/remove) class name (w3-show) for displaying list items. Remove the style attribute.
- *                              Adjust width and add borders.
- *                              Import context directly. Variable names moved to VarNames object.
- * 2024/10/28  ITA    1.03      Improve the responsiveness of the dropdown.
- * 2025/12/18  ITA    1.06      Performed further tweaks and tests, to prepare this component for npm publishing.
- * 2025/12/26  ITA    1.07      Changed the arrow symbols to + and - for better cross-platform rendering.
- * 2025/12/29  ITA    1.09      Placeholder to show the name of the data, as provided by the label attribute.
+ * Start Date  End Date      Dev    Version   Description
+ * 2024/02/27                ITA    1.00      Genesis.
+ * 2024/09/17                ITA    1.02      Toggle (add/remove) class name (w3-show) for displaying list items. Remove the style attribute.
+ *                                            Adjust width and add borders.
+ *                                            Import context directly. Variable names moved to VarNames object.
+ * 2024/10/28                ITA    1.03      Improve the responsiveness of the dropdown.
+ * 2025/12/18                ITA    1.06      Performed further tweaks and tests, to prepare this component for npm publishing.
+ * 2025/12/26                ITA    1.07      Changed the arrow symbols to + and - for better cross-platform rendering.
+ * 2025/12/29                ITA    1.09      Placeholder to show the name of the data, as provided by the label attribute.
+ * 2026/01/11  2026/01/16    ITA    1.10      Improved the component so that it stores its own data instead of relying on the Collections context provider.
  */
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
-import { useCollectionsContext } from './CollectionsProvider';
+import { useState, useMemo } from 'react';
+import { compare } from 'some-common-functions-js';
 import './dropdown.css';
 
+/** Provide a multi-selection, searchable dropdown that takes an array of primitve types.
+ * @param {String} label for screen readers.
+ * @param {Array} data An array of primitive type items to display in the multiselection dropdown.
+ * @param {String} [sortDirection='asc'] 'asc' or 'desc'. Default = 'asc'.
+ * @param {Array} [selectedData=[]] pre-set array of selected items. Optional.
+ * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
+ * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
+ * @param {null} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
+ * @param {Object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
+ * @param {Object} buttonStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional) 
+*/
 export function MultiSelectionDropdown({
                     label, // label with which to describe the dropdown.
-                    collectionName,
+                    data,
+                    sortDirection = 'asc',
+                    selectedData = [],
+                    maxNumSelections = null,
                     isDisabled = false,
                     onItemsSelected = null,
                     dropdownStyle, // Styling object with fields {color, backgroundColor, borderColor (optional), fontSize}.
                     buttonStyle // Styling for the DONE button
                 })
 {
-
-    const { getCollectionData, setSelected, getSelected, getMaxNumSelections, collectionExists } = useCollectionsContext();
     const [showItems, setShowItems] = useState(false); /* true or false: show or hide dropdown items */
-    const [list, setList] = useState([]);
-    const [selectedItems, setSelectedItems] = useState([]);
+
+    // Store dropdown input data as sorted.
+    const sortedData = useMemo(()=> {
+        return data.toSorted(compareFn);
+    }, [data]);
+    
     const [searchText, setSearchText] = useState('');
-    const [listKey, setListKey] = useState(Math.random()); // To be used to cause the re-render of selected items in the drop-down.
-    const [selectedItemsKey, setSelectedItemsKey] = useState(Math.random()); // To be used to cause the re-render of the drop-down items.
-    const keyStep = 0.001;
-    const [inputStyle] = useState(()=> {
+
+    // Use to set user selected items only!! To get selected items, use selectedItems.
+    const [currentSelection, setCurrentSelection] = useState([]);
+
+    // Use to get selected items only!! To set selected items, use setCurrentSelection() function.
+    const selectedItems = useMemo(()=> {
+        if (currentSelection.length > 0) {
+            return currentSelection
+                    .filter(currSelItem=> {
+                        // Eliminate selected items currently not in the dropdown data.
+                        return sortedData.findIndex(sortedItem=> (sortedItem === currSelItem)) >= 0;
+                    })
+                    .toSorted(compareFn);
+
+        }
+        
+        return selectedData // Eliminate selected items currently not in the dropdown data.
+                .filter(item=> sortedData.findIndex(stableItem=> (stableItem === item)) >= 0)
+                .toSorted(compareFn);
+    }, [sortedData, selectedData, currentSelection]);
+
+    // Items matching text typed by the user.
+    const searchItems = useMemo(()=> {
+        if (searchText.length === 0)
+            return [];
+
+        // Obtain items matching the typed text.
+        const searchTextUpperCase = searchText.toUpperCase();
+        return sortedData.filter(item=> item.toUpperCase().includes(searchTextUpperCase));
+    }, [searchText]);
+
+    // List of items to display in the dropdown.
+    const list = useMemo(()=> {
+        if (searchText.length > 0)
+            return searchItems;
+
+        return sortedData;
+    }, [searchText, sortedData]);
+
+    const inputStyle = (()=> {
         const aStyle = { 
             backgroundColor: dropdownStyle?.backgroundColor,
             color: dropdownStyle?.color
@@ -46,50 +99,34 @@ export function MultiSelectionDropdown({
             aStyle.fontSize = dropdownStyle?.fontSize;
         }
         return aStyle;
-    });
+    })();
     const borderColor = dropdownStyle?.borderColor;
+
+    /**Comparison function used in the sorting of dropdown elements. */
+    function compareFn(item1, item2) {
+        return compare(item1, item2, sortDirection);
+    }
     
-    useEffect(()=> {
-        // If collection by the given name not yet added.
-        if (!collectionExists(collectionName))
-            return;
-
-        // Collection added. Populate data.
-        setList(getCollectionData(collectionName));
-        const selItems = getSelected(collectionName); // Get the collection's selected items.
-        setSelectedItems(selItems);
-    }, [collectionExists(collectionName)]); // useEffect(()=> {
-
-    /** Respond to text being typed in the input box */
+    /** Respond the user typing text to search for items */
     function handleSearch(e) {
-        setSearchText(e.target.value);
-
-        // Obtain items matching the typed text.
-        let result = getCollectionData(collectionName).filter(item=> {
-                        const itemValue = item.toUpperCase();
-                        const targetValue = e.target.value.toUpperCase();
-                        return itemValue.includes(targetValue);
-                    });
-
-        setList(result);
-        if (result.length > 0)
-            showList(); // Show list only if there were matching items.
+        // As the user types, pop up the listbox with matching items. Close the listbox if there's no matching items.
+        const text = e.target.value;
+        setSearchText(text);
+        if (list.length > 0)
+            showList();
         else
             hideList();
-
-        setListKey(listKey + keyStep); // Cause re-render of drop-down items.
     } // function handleSearch(e)
 
     function handleItemClick(clickedItem) {
-        let updatedItems = [...selectedItems];
+        let updatedItems = [ ...selectedItems ];
         if (!isSelected(clickedItem)) {
             // Get the allowed maximum number of selections.
             // Allow no more item selection if maximum number of selections reached
-            const maxSelections = getMaxNumSelections(collectionName);
-            if (maxSelections !== null && selectedItems.length >= maxSelections) {
+            if (maxNumSelections !== null && updatedItems.length >= maxNumSelections) {
                 return;
             } // if (maxSelections !== null && selectedItems.length >= maxSelections)
-
+            
             updatedItems.push(clickedItem);
         } // if (!isSelected(clickedItem)) {
         else { // Remove the item from the selected items.
@@ -98,12 +135,8 @@ export function MultiSelectionDropdown({
             });
         } // else
 
-        // Update the selected items in the collection.
-        setSelected(collectionName, updatedItems);
         // Update the selected items in the component.
-        setSelectedItems(updatedItems);
-        // Force re-render.
-        setSelectedItemsKey(selectedItemsKey + keyStep);
+        setCurrentSelection(updatedItems);
     } // function handleItemClick(e) {
 
     function isSelected(item) { 
@@ -117,12 +150,9 @@ export function MultiSelectionDropdown({
         const updatedItems = selectedItems.filter(item=> {
             return item !== itemToRemove;
         });
-        setSelectedItems(updatedItems);
-        setSelectedItemsKey(selectedItemsKey + keyStep);
-        setSelected(collectionName, updatedItems); // collectionsContext update. Set the selected items.
-
+        setCurrentSelection(prev=> updatedItems);
         if (onItemsSelected !== null)
-            onItemsSelected();
+            onItemsSelected(updatedItems);
     } // function removeItem(itemToRemove) {
 
     function toggleShowList() {
@@ -134,9 +164,8 @@ export function MultiSelectionDropdown({
 
     function hideList() {
         setShowItems(false);
-        
         if (onItemsSelected !== null)
-            onItemsSelected(); 
+            onItemsSelected(selectedItems); 
     } // function hideList() {
 
     function showList() {
@@ -152,25 +181,38 @@ export function MultiSelectionDropdown({
             <div className='dropdown-js-input-wrapper dropdown-js-rounded' style={inputStyle}>
                 <div>
                     <input className={`dropdown-js-input dropdown-js-rounded`}
-                            style={inputStyle}
-                            type='text' id='searchDropDown' name='searchDropDown' autoComplete='off'
-                            aria-label={`Type to search for ${label}`} aria-required={true} onChange={e=> handleSearch(e)}
-                            placeholder={`Type to Search for ${label}`} value={searchText} />
+                        id='multiselectionDropdownSearch' name='multiselectionDropdownSearch'
+                        style={inputStyle}
+                        type='text' autoComplete='off'
+                        role='combobox'
+                        aria-label={label}
+                        aria-placeholder={`Type to search for ${label}`}
+                        aria-autocomplete='list'
+                        aria-controls='multiSelectionDropdown'
+                        aria-expanded={showItems}
+                        aria-haspopup='listbox'
+                        onChange={e=> handleSearch(e)}
+                        placeholder={`Type to Search for ${label}`} value={searchText}
+                    />
                 </div>
                 
-                <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded' onClick={e=> toggleShowList(e)}>
+                <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded'
+                     aria-expanded={showItems} aria-controls='multiSelectionDropdown' aria-label={`${label} options`}
+                     onClick={e=> toggleShowList(e)}>
                     <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
 
             {/* Selected items */}
             <div className='dropdown-js-padding dropdown-js-selected-wrapper dropdown-js-selected-container'>
-                <div className='dropdown-js-selected-items' key={selectedItemsKey}>
-                    {selectedItems.map((item, index)=> {                            
+                <div id='multiSelectionDropdown-selectedItems' className='dropdown-js-selected-items'
+                     aria-label={`Selected ${label} options`} aria-live='polite' >
+                    {selectedItems.map((item)=> {                            
                             return ( 
                                 <span key={`${item}`} className='dropdown-js-padding dropdown-js-rounded' 
+                                      aria-label={`${item}`}
                                       style={{...inputStyle, margin: '3.5px', marginRight: '0px'}}>
-                                    {item} <span style={{cursor: 'pointer'}} onClick={e=> removeItem(item)}>{"\u00D7"}</span>
+                                    {item} <span style={{cursor: 'pointer'}} aria-label={`Remove ${item}`} onClick={e=> removeItem(item)}>{"\u00D7"}</span>
                                 </span>
                             );
                         })
@@ -180,20 +222,21 @@ export function MultiSelectionDropdown({
 
             {/* Dropdown items */}
             <div className={`dropdown-js-padding dropdown-js-menu dropdown-js-rounded ${(!showItems) && 'dropdown-js-hide'}`}
-                 style={inputStyle} id='dropDown' name='dropDown' aria-label={label} 
-                 key={listKey} >
+                 style={inputStyle} id='multiSelectionDropdown' name='multiSelectionDropdown'
+                 role='listbox' aria-multiselectable={true} aria-expanded={showItems} >
                 {list.map((item, index)=> {
                         return (
-                            <div key={`${index}#${item}`} aria-label={item} >
+                            <div key={`${index}#${item}`} >
                                 <input type='checkbox' name={`${item}Checkbox`} 
-                                    style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={e=> handleItemClick(item)} value={item} />
+                                       role='option' aria-label={item} aria-checked={isSelected(item)}
+                                       style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={e=> handleItemClick(item)} value={item} />
                                 <label style={{marginLeft: '5px'}} htmlFor={`${item}`}>{item}</label>
-                                <hr style={{borderColor: inputStyle.color}}/>
+                                <hr style={{ backgroundColor: inputStyle.color, border: 'none', height: '0.5px'}}/>
                             </div>
                         );
                     }) // list.map((item, index)=> {
                 }
-                <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle}
+                <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle} aria-label={`Click to collapse ${label} options`}
                     title='Done' disabled={list.length === 0} onClick={e=> hideList()} type='button'>
                     Done
                 </button>
@@ -204,9 +247,12 @@ export function MultiSelectionDropdown({
 
 MultiSelectionDropdown.propTypes = {
     label: PropTypes.string.isRequired,
-    collectionName: PropTypes.string.isRequired,
+    data: PropTypes.array.isRequired,
+    sortDirection: PropTypes.string,
+    selectedData: PropTypes.array.isRequired,
+    selectedItems: PropTypes.array,
+    maxNumSelections: PropTypes.number,
     isDisabled: PropTypes.bool,
-    selectedItem: PropTypes.array,
     onItemsSelected: PropTypes.func,
     dropdownStyle: PropTypes.shape({
         color: PropTypes.string.isRequired, // text color

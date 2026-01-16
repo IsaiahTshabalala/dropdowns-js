@@ -3,7 +3,7 @@
   "author": "ITA",
   "description": "A React library providing customizable search dropdown components with single and multi-selection capabilities.",
   "private": false,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "main": "./dist/dropdowns-js.cjs.js",
   "module": "./dist/dropdowns-js.es.js",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "prop-types": "^15.8.1",
-    "some-common-functions-js": "^1.1.8"
+    "some-common-functions-js": "^1.2.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",

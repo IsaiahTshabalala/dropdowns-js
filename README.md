@@ -6,38 +6,20 @@ Searchable dropdown components for React applications.
 - DropdownObj - a single selection dropdown whose underlying data is an array of objects.
 - MultiSelectionDropdown - a multi-selection dropdown whose underlying data is a primitive array.
 - MultiSelectionDropdownObj - a multi-selection dropdown whose underlying data is an array of objects.
+The components sort the data provided to them.
    
 ## Installation
 ```
 npm install dropdowns-js
 ```  
-  
-## 1. Wrap your Component
-All components must be separately wrapped in the CollectionsProvider to manage the dropdown states.
 
-```
-// App.jsx
-import { CollectionsProvider } from "dropdowns-js";
-import MyComponent from "./MyComponent";
-
-function App() {
-    return (
-        <CollectionsProvider>
-            <MyComponent />
-        </CollectionsProvider>
-    );
-}
-export default App;
-```  
-  
-## 2. Import styles and hook
+## 1. Imports
 Inside your component, where you use any of the dropdowns, import as follows:  
   
 ```
 // File: MyComponent.jsx
 import "dropdowns-js/style.css"; // Must not be left out, so as to enforce dropdown styling.
 import {
-    useCollectionsContext,
     Dropdown, // If you use it.
     DropdownObj, // If you use it.
     MultiselectionDropdown, // If you use it.
@@ -45,88 +27,51 @@ import {
 } from "dropdowns-js";
 
 export default function MyComponent {
-    // Inside your component.
-    const {
-        addCollection, // A must. For pre-populating your dropdown
-        collectionExists, // A must. To be called prior to adding a collection.
-        getCollectionData, // Depends
-        updateCollection, // Depends on whether the collection's data gets updated.
-        setSelected, // Depends. Use-case: pre-populated selection.
-        getSelected // A must. For obtaining selected items.
-    } = useCollectionsContext();
-
     // ...
 }
 ``` 
-**Context functions**  
-`addCollection(collectionName, anArray, maxNumSelections = null, primitiveType = true, ...sortFields)`  
-Add a new collection of data to be displayed in a dropdown for selection.  
-  
-
-`collectionExists(collectionName)`  
-Check (true/false) whether the collection with the specified name exists.  
-  
-`updateCollection(collectionName, anArray)`  
-Update the specified collection with new data. An error is thrown for a non-existent collection name. A dropdown whose data is updated must be given a key attribute, and the key value must be updated to cause a re-render with new data.  
-  
-`getCollectionData(collectionName)`  
-Get the data (array) of the specified collection. An error is thrown for a non-existent collection name.  
-
-`setSelected(collectionName, selectedItemsArray)`  
-Set the selected items in the specified collection. They are ignored if they were are part of the collection. An error is thrown for a non-existent collection name.  
-  
-`getSelected(collectionName)`  
-Get the selected items (array) of the specified collection. An error is thrown for a non-existent collection name is specified.  
-  
-`getMaxNumSelections(collectionName)`  
-Get the maximum number of items that can be selected on this collection. An error is thrown for a non-existent collection name is specified.  
   
 ## 3. Dropdown Component Attributes
-`label` - to be used for aria-label.  
+`label` - the name of the data to be displayed displayed in the dropdown. e.g. Cars, Users.
   
 `isDisabled` - disables the component when set to true. Default = false.  
   
-`collectionName` - name of the collection to populate the dropdown.  
+`data` - data to display in the dropdown, for the user to select from.  
+
+`sortDirection` - for dropdowns using primitive type array input. Specifies the sort order of the dropdown data. 'asc' or 'desc'. Default is 'asc'.
+
+`sortFields` - for dropdonws using object type array input. An array. Specifies the field sort orders of the dropdown data. e.g. ['score desc', 'numGames asc']. If a field is to be sorted ascending order, you can ommit asc. .e.g.  ['fullName', 'score desc'].
+
+`displayName` - for dropdowns using object type array input. The field (name) by which the dropdown items will be displayed.  
+
+`valueName` - for dropdowns using object type array input. The name of the field that will be used as the underlying unique value of each dropdown item. e.g. 'code', 'id'.
+
+`selectedData` - for multi-selection dropdowns. An array of pre-set selection of options. This is an array of multi-selection dropdowns. Optional.
+
+`selected` - for single selection dropdowns. A pre-set selected option.
   
-`dropdownStyle` - for providing styling the dropdown. Fields: {color, backgroundColor, borderColor (optional)}.  
+`onItemSelected` - for single selection dropdowns. A function to call when the user has made a selection.
   
-`buttonStyle` - for providing styling the DONE button (pressed after completing selection in multi-selection dropdowns). Fields: {color, backgroundColor}.  
+`onItemsSelected` - for multi-selection dropdowns. A function to call when the user has made a selection. Or removed items from their selection.
   
-`onItemSelected` - a providing a method to execute on selection of items.
+`dropdownStyle` - CSS styling for the dropdown. Fields: {color, backgroundColor, borderColor (optional)}.  
+  
+`buttonStyle` - for multi-selecton dropdowns. CSS styling for the DONE button (pressed after completing a selection). Fields: {color, backgroundColor}.  
   
 ## 4. Dropdown usage example
 This dropdown is to be used when the underlying data is a primitive type array.  
 ```  
-import { Dropdown, useCollectionsContext } from 'dropdowns-js';
+import { Dropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css'; // styles must be imported, otherwise the dropdowns do not display properly.
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function MyComponent() {
     const [output, setOutput] = useState('');
-
-    const { 
-        addCollection,
-        collectionExists,
-        getSelected
-    } = useCollectionsContext();
-
-    useEffect(()=> {
-        if (!collectionExists("FRUITS")) {
-            const fruits = ["APPLE", "BANANA" "ORANGE", "NAARJIE", "PEACH"]
-            // Create an APPLES collection
-            addCollection("FRUITS", // collection name
-                          fruits, // collection data
-                          1, // Maximum number of allowed selections.
-                          true, // true = primitive type (string) data collection
-                          'asc'); // sort order
-        }
-    }, []);
+    const fruits = [ "BANANA" "ORANGE", "NAARJIE", "PEACH", "APPLE" ];
 
     /**Respond when the user has chosen a fruit */
-    function fruitSelected() {
-        // Obtain the selected items. Only 1 selection was made (size 1 array)
-        const selectedFruit = getSelected("FRUITS")[0];
-        setOutput(selectedFruit);
+    function fruitSelected(selFruit) {
+        setOutput(selFruit);
     }
 
     return (
@@ -136,9 +81,13 @@ export default function MyComponent() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='fruits' style={{width: '70px'}}>Fruit</label>
 
-                <Dropdown id='fruits' label={'Fruits'} collectionName={'FRUITS'} 
-                          onItemSelected={fruitSelected}
-                          dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
+                <Dropdown
+                    label={'Fruits'}
+                    data={fruits} sortDirection='asc'
+                    onItemSelected={fruitSelected}
+                    selected={"BANANA"}
+                    dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
+                />
 
             </div>
             <p>{output}</p>
@@ -149,47 +98,27 @@ export default function MyComponent() {
 ```  
 ## 5. DropdownObj usage example
 ```  
-import { DropdownObj, useCollectionsContext } from 'dropdowns-js';
+import { DropdownObj } from 'dropdowns-js';
 import 'dropdowns-js/style.css'; // Not to be left out.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function MyComponent2() {
     const [output, setOutput] = useState('');
-    const [aKey, setAKey] = useState(0);
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
-
-    useEffect(()=> {
-        if (!collectionExists("DRIVING_CODES")) {
-            // Create a DRIVING_CODES collection, sorted by description ascending
-            const drivingCodes = [
-                { code: 'A1', description: 'Light Motorcycles' },
-                { code: 'A', description: 'Heavy Motorcycles' },
-                { code: 'B', description: 'Light Vehicles' },
-                { code: 'EB', description: 'Light Articulated' },
-                { code: 'C1', description: 'Heavy Vehicles' },
-                { code: 'C', description: 'Extra Heavy Vehicles' },
-                { code: 'EC1', description: 'Heavy Articulated' },
-                { code: 'EC', description: 'Extra Heavy Articulated' }
-            ];
-            addCollection("DRIVING_CODES", // collection name
-                          drivingCodes, // collection data
-                          1, // allow maximum 1 selection
-                          false, // non-primitive type, that is, object type data collection
-                          'description asc'); // sort order
-        }
-    }, []);
+    const drivingCodes = [
+        { code: 'A1', description: 'Light Motorcycles' },
+        { code: 'A', description: 'Heavy Motorcycles' },
+        { code: 'B', description: 'Light Vehicles' },
+        { code: 'EB', description: 'Light Articulated' },
+        { code: 'C1', description: 'Heavy Vehicles' },
+        { code: 'C', description: 'Extra Heavy Vehicles' },
+        { code: 'EC1', description: 'Heavy Articulated' },
+        { code: 'EC', description: 'Extra Heavy Articulated' }
+    ];
 
     /**Respond when the user has chosen a driving code */
-    function drivingCodeSelected() {
-        // Obtain the selected items. Only 1 selection was made (size 1 array)
-        const selectedDrivingCode = [...getSelected(collectionNames.DRIVING_CODES)[0]];
-        setOutput(`${selectedDrivingCode.code} => ${selectedDrivingCode.description}`);
+    function drivingCodeSelected(selDrivingCode) {
+        setOutput(`${selDrivingCode.code} => ${selDrivingCode.description}`);
     }
 
     return (
@@ -199,8 +128,13 @@ export default function MyComponent2() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
 
-                <DropdownObj id='driving-codes' label='Driving Codes' collectionName={"DRIVING_CODES"}
-                    displayName="description" valueName="code"  onItemSelected={drivingCodeSelected}
+                <DropdownObj
+                    label='Driving Codes' data={drivingCodes}
+                    displayName="description"
+                    valueName="code"
+                    sortFields={ ['description'] }
+                    onItemSelected={drivingCodeSelected}
+                    selected={drivingCodes[0]}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
@@ -211,40 +145,22 @@ export default function MyComponent2() {
 ```  
 ## 6. MultiselectionDropdown usage example 
 ```  
-import { MultiSelectionDropdown, useCollectionsContext } from 'dropdowns-js';
+import { MultiSelectionDropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function MyComponent3() {
     const [output, setOutput] = useState('');
-    const [aKey, setAKey] = useState(0);
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
-
-    useEffect(()=> {
-        if (!collectionExists("SPORTS")) {
-            // Create an SPORT collection sorted in ascending order.
-            const sport = [
-                "Motor Racing", "Cycling", "Wrestling", "Kung Fu", "Boxing", "Basket Ball",
-                "Rugby", "Cricket", "Running", "Soccer", "Netball", "Hockey"
-            ];
-            addCollection("SPORT", // collection name
-                          sport, // collection data
-                          4, // maximum number of selections
-                          true, // primitive type data (string in this case)
-                          'asc'); // asc - sort order 
-        }
-    }, []);
+    const sport = [
+        "Motor Racing", "Cycling", "Wrestling", "Kung Fu", "Boxing", "Basket Ball",
+        "Rugby", "Cricket", "Running", "Soccer", "Netball", "Hockey"
+    ];
 
     /**Respond when the user has chosen an interest */
-    function sportSelected() {
+    function sportsSelected(selSports) {
         // Obtain the selected items.
-        const selectedSport = getSelected("SPORT").join(", );
+        const selectedSport = selSports("SPORT").join(", );
         setOutput(selectedSport);        
     }
 
@@ -255,10 +171,10 @@ export default function MyComponent3() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='sport' style={{width: '70px'}}>Sport</label>
 
-                <MultiSelectionDropdown label='Sport'
-                    id='sport'
-                    collectionName={"SPORT"}
-                    onItemsSelected={sportSelected}
+                <MultiSelectionDropdown
+                    label='Sport'
+                    data={sport}
+                    onItemsSelected={sportsSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />
             </div>
@@ -272,58 +188,29 @@ export default function MyComponent3() {
 ## 7. MultiSelectionDropdownObj usage example
 ```  
 import 'dropdowns-js/style.css';
-import { MultiSelectionDropdownObj, useCollectionsContext } from 'dropdowns-js';
+import { MultiSelectionDropdownObj } from 'dropdowns-js';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 
 export default function MyComponent4() {
     const [output, setOutput] = useState('');
-    const [dropdownKey2, setDropdownKey2] = useState(0);
-    const keyStep = .000001;
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
-
-    const collectionNames = {
-        DRIVING_CODES: "DRIVING_CODES",
-        DRIVERS: "DRIVERS"
-    };
-
-    useEffect(()=> {
-        if (!collectionExists(collectionNames.DRIVING_CODES)) {
-            // Create DRIVING_CODES collection sorted in ascending order.
-            // Create a DRIVING_CODES collection, sorted by description ascending
-            const drivingCodes = [
-                { code: 'A1', description: 'Light Motorcycles' },
-                { code: 'A', description: 'Heavy Motorcycles' },
-                { code: 'B', description: 'Light Vehicles' },
-                { code: 'EB', description: 'Light Articulated' },
-                { code: 'C1', description: 'Heavy Vehicles' },
-                { code: 'C', description: 'Extra Heavy Vehicles' },
-                { code: 'EC1', description: 'Heavy Articulated' },
-                { code: 'EC', description: 'Extra Heavy Articulated' }
-            ];
-
-            addCollection("DRIVING_CODES", // collection name
-                          drivingCodes, // collection data
-                          3, // maximum number of selections
-                          false, // object type data
-                          'description asc'); // asc - sort order 
-        }
-    }, []);
+    const drivingCodes = [
+        { code: 'A1', description: 'Light Motorcycles' },
+        { code: 'A', description: 'Heavy Motorcycles' },
+        { code: 'B', description: 'Light Vehicles' },
+        { code: 'EB', description: 'Light Articulated' },
+        { code: 'C1', description: 'Heavy Vehicles' },
+        { code: 'C', description: 'Extra Heavy Vehicles' },
+        { code: 'EC1', description: 'Heavy Articulated' },
+        { code: 'EC', description: 'Extra Heavy Articulated' }
+    ];
 
     /**Respond when the user has chosen an interest */
-    function drivingCodesSelected() {
-        // Obtain the selected driving codes.
-        const selectedDrivingCodes = getSelected("DRIVING_CODES");
-
+    function drivCodesSelected(selDrivCode) {
         // Create a string array of driving codes.
-        const strSelectedCodes = selectedDrivingCodes.map((drivingCode)=> drivingCode.code)
-                                    .map(drivingCode => drivingCode.code)
+        const strSelectedCodes = selDrivCodes.map((drivCode)=> drivCode.code)
+                                    .map(drivCode => drivCode.code)
                                     .join(", ");
         setOutput(strSelectedCodes);
     }
@@ -335,12 +222,12 @@ export default function MyComponent4() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor={'driving-licence-codes'} style={{width: '100px'}}>Lic. Codes</label>
                 <MultiSelectionDropdownObj
-                    id='driving-licence-codes'
                     label='Driving Licence Codes'
-                    collectionName='DRIVING_CODES'
+                    data={drivingCodes}
+                    sortFields={ ['description'] }
                     valueName='code'
                     displayName='description'
-                    onItemsSelected={drivingCodeSelected}
+                    onItemsSelected={drivCodeSelected}
                     isDisabled={false}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />

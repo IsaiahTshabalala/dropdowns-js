@@ -4,9 +4,10 @@
  * 
  * Change Log
  * =========================================================
- * Date        Version   Author  Description
+ * Start Date  End Date     Version   Author  Description
  * =========================================================
- * 2025/12/16  1.0.0     ITA     Genesis.
+ * 2025/12/16               1.0.0     ITA     Genesis.
+ * 2026/01/11  2026/01/16   1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
 */
 
 /** VERY IMPORTANT!!!
@@ -22,10 +23,11 @@
  * Based on the above, please comment/uncomment the appropriate import statements below.
  */
 
-import { Dropdown, useCollectionsContext } from 'dropdowns-js';
+// Test type 1: NPM package testing.
+import { Dropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
-//import { useCollectionsContext } from './dropdowns/CollectionsProvider';
+// Test type 2: local testing.
 // import { Dropdown } from './dropdowns/Dropdown';
 
 import { useEffect, useState } from 'react';
@@ -38,7 +40,7 @@ const sport = [
 ];
 
 const education = [
-    "Cooking", "Hunting", "Mathematics", "Physics", "Philosophy", "Programming", "Guarding",
+    "Hunting", "Mathematics", "Physics", "Philosophy", "Programming", "Cooking", "Guarding",
     "Eviction", "Use of Firearms - Rifle", "Life Skills", "Life Science", "Policing", "Networking"
 ];
 
@@ -52,57 +54,37 @@ const movies = [
 
 export default function DropdownTest() {
     const [output, setOutput] = useState('');
-    const [aKey, setAKey] = useState(0);
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
-
-    const collectionNames = {
-        INTERESTS: "INTERESTS",
-        TOPICS: "TOPICS"
-    };
+    const [selectedInterest, setSelectedInterest] = useState();
+    const [topics, setTopics] = useState([]);
+    const [selectedTopic, setSelectedTopic] = useState(null);
 
     useEffect(()=> {
-        if (!collectionExists(collectionNames.INTERESTS)) {
-            // Create an INTERESTS collection
-            addCollection(collectionNames.INTERESTS, // collection name
-                          interests, // collection data
-                          1, // Maximum number of allowed selections.
-                          true, // true = primitive type data collection
-                          'asc'); // sort order
-        }
-        if (!collectionExists(collectionNames.TOPICS)) {
-            // Create a topics collection, initially empty pending a selection of an interest
-            addCollection(collectionNames.TOPICS, [], 1, true, 'asc');
-        }
+        interestSelected(interests[0]);
     }, []);
 
     /**Respond when the user has chosen an interest */
-    function interestSelected() {
-        // Obtain the selected items. Only 1 selection was made (size 1 array)
-        const selectedInterest = getSelected(collectionNames.INTERESTS)[0];
+    function interestSelected(selInterest) {
+        if (selInterest !== selectedInterest)
+            setSelectedInterest(prev=> selInterest);
 
+        // Obtain the selected items. Only 1 selection was made (size 1 array)
         let updateData;
-        if (selectedInterest === "Education") // Education selected
+        if (selInterest === "Education") // Education selected
             updateData = education;
-        else if (selectedInterest === "Sport") // Sport selected
+        else if (selInterest === "Sport") // Sport selected
             updateData = sport;
         else // Movies selected
             updateData = movies;
 
-        updateCollection(collectionNames.TOPICS, updateData);
-
-        // Refresh the topics Dropdown, since it's data has been updated.
-        setAKey(aKey + .0001);
+        setTopics(prev=> updateData);
+        const selTopic = updateData[0];
+        topicSelected(selTopic);
+        setOutput(`${selInterest} => ${selTopic}`);
     }
 
-    function topicSelected() {
-        const selectedInterest = getSelected(collectionNames.INTERESTS)[0];
-        const selectedTopic = getSelected(collectionNames.TOPICS)[0];
-        setOutput(`${selectedInterest} => ${selectedTopic}`);
+    function topicSelected(selTopic) {
+        setSelectedTopic(prev=> selTopic);
+        setOutput(`${selectedInterest} => ${selTopic}`);
     }
 
     return (
@@ -111,13 +93,21 @@ export default function DropdownTest() {
             <p>Select an interest, and then your topic</p>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor="interests" style={{width: '70px'}}>Choose your Interest</label>
-                <Dropdown id="interests" label={'Interests'} collectionName={collectionNames.INTERESTS} onItemSelected={interestSelected}
+                <Dropdown id="interests" 
+                          label={'Interests'}
+                          data={interests}
+                          selected={selectedInterest} // Default selection.
+                          onItemSelected={interestSelected}
                           dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor="topics" style={{width: '70px'}}>Topics</label>
-                <Dropdown id="topics" key={aKey} collectionName={collectionNames.TOPICS} label={'Topics'} onItemSelected={topicSelected}
+                <Dropdown id="topics"
+                          label={'Topics'}
+                          data={topics}
+                          selected={selectedTopic}
+                          onItemSelected={topicSelected}
                           dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>
 

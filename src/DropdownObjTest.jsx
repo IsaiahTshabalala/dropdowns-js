@@ -4,9 +4,10 @@
  * 
  * Change Log
  * =========================================================
- * Date        Version   Author  Description
+ * Start Date  End Date    Version   Author  Description
  * =========================================================
- * 2025/12/18  1.0.0     ITA     Genesis.
+ * 2025/12/18              1.0.0     ITA     Genesis.
+ * 2026/01/11  2026/01/16  1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
 */
 
 /** VERY IMPORTANT!!!
@@ -23,17 +24,16 @@
  */
 
 // Test type 1: package import.
-import { DropdownObj, useCollectionsContext } from 'dropdowns-js';
+import { DropdownObj } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
 // Test Type 2: local import.
-// import { useCollectionsContext } from './dropdowns/CollectionsProvider';
 // import { DropdownObj } from './dropdowns/DropdownObj';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /*======= Collections/lists to be used to illustrate how to use DropdownObj ============*/
-const drivingCodesZA = [
+const drivingCodesZa = [
   { code: "A1", description: "Motorcycle ≤125cc", minAge: 18 },
   { code: "A", description: "Motorcycle >125cc", minAge: 16 },
   { code: "B", description: "Light motor vehicle ≤3,500kg", minAge: 18 },
@@ -44,7 +44,7 @@ const drivingCodesZA = [
   { code: "EC", description: "Heavy goods vehicle + heavy trailer", minAge: 18 }
 ];
 
-const drivers = [
+const driversData = [
   {
     fullName: "Thabo Mokoena",
     licenceCode: "B",
@@ -153,69 +153,52 @@ const drivers = [
 
 export default function DropdownObjTest() {
     const [output, setOutput] = useState('');
-    const [aKey, setAKey] = useState(0);
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
-
-    const collectionNames = {
-        DRIVING_CODES: "DRIVING_CODES",
-        DRIVERS: "DRIVERS"
-    };
-
-    useEffect(()=> {
-        if (!collectionExists(collectionNames.DRIVING_CODES)) {
-            // Create a DRIVING_CODES collection, sorted by description ascending
-            addCollection(collectionNames.DRIVING_CODES, // collection name
-                          drivingCodesZA, // collection data
-                          1, // allow maximum 1 selection
-                          false, // non-primitive type, that is, object type data collection
-                          'description asc'); // sort order
-        }
-        if (!collectionExists(collectionNames.DRIVERS)) {
-            // Create a DRIVERS collection, initially empty pending the selection of a driving code sorted by fullName ascending.
-            addCollection(collectionNames.DRIVERS, [], 1, false, 'fullName asc');
-        }
-    }, []);
+    const [selectedDrivingCode, setSelectedDrivingCode] = useState(null);
+    const [drivers, setDrivers] = useState([]);
+    const [selectedDriver, setSelectedDriver] = useState(null);
 
     /**Respond when the user has chosen a driving code */
-    function drivingCodeSelected() {
+    function drivingCodeSelected(selDrivCode) {
         // Obtain the selected items. Only 1 selection was made (size 1 array)
-        const selectedDrivingCode = getSelected(collectionNames.DRIVING_CODES)[0];
-        let updateData ;
-        updateData = drivers.filter(driver=> {
-            return driver.licenceCode === selectedDrivingCode.code;
+        setSelectedDrivingCode(({ ...selDrivCode }));
+        let updateData  = driversData.filter(driver=> {
+            return driver.licenceCode === selDrivCode.code;
         });
-
-        updateCollection(collectionNames.DRIVERS, updateData);
-
-        // Referesh the DRIVER'S dropdown, since its data has been updated.
-        setAKey(aKey + .0001);
+        setDrivers(updateData);
+        setSelectedDriver(updateData[0]);
+        updateOutput(selDrivCode, updateData[0]);
     }
 
-    function driverSelected() {
-        const selectedDriver = getSelected(collectionNames.DRIVERS)[0];
-        const selectedDrivingCode = getSelected(collectionNames.DRIVING_CODES)[0];
-        setOutput(`${selectedDriver.fullName} => ${selectedDrivingCode.code}`);
+    function driverSelected(selDriver) {
+        updateOutput(selectedDrivingCode, selDriver);
+    }
+
+    function updateOutput(selDrivCode, selDriver) {
+        setOutput(`${selDriver.fullName} => ${selDrivCode.code}`);
     }
 
     return (
         <div className='w3-container' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>DropdownObj Example</h1>
-            <p>Select an interest, and then your topic</p>
+            <p>Select a driving code, and then a driver</p>
+            
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
-                <DropdownObj id='driving-codes' label='Driving Codes' collectionName={collectionNames.DRIVING_CODES}
+                <DropdownObj 
+                    id='driving-codes' label='Driving Codes'
+                    data={drivingCodesZa}
+                    sortFields={['description', 'code']}
                     displayName="description" valueName="code"  onItemSelected={drivingCodeSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
-            <div style={{padding: '2px', display: 'flex'}}> 
+             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driver' style={{width: '70px'}}>Drivers</label>
-                <DropdownObj id='drivers' key={aKey} collectionName={collectionNames.DRIVERS} label='Drivers'
+                <DropdownObj id='drivers' 
+                    label='Drivers'
+                    data={drivers} 
+                    selected={selectedDriver}
+                    sortFields={['fullName', 'id']}
                     displayName="fullName" valueName="id" onItemSelected={driverSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>

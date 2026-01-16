@@ -31,7 +31,10 @@ Sync version with package.json version.
 - Placeholder text in the text input of the dropdowns to also show the name of the data, as provided by the label attribute.
 
 ## 2026/01/01 - Version 1.0.9
-Updated the current package to use the latest some-common-functions-js package. Given the changes that were done to change recursive functions to iterative, thereby overcoming stack limits imposed by browsers.
+Updated the current package to use the latest some-common-functions-js package. Given the changes that were done to change recursive functions to iterative, thereby overcoming stack limits imposed by browsers.  
+
+## 2026/01/11 to 2026/01/16 - Version 1.1.1
+- Collections context and provider removed, and no longer necessary for use by the consumers of this package.
 
   
 

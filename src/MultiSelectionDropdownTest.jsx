@@ -4,17 +4,18 @@
  * 
  * Change Log
  * =========================================================
- * Date        Version   Author  Description
+ * Start Date  End Date    Version   Author   Description
  * =========================================================
- * 2025/12/19  1.0.0     ITA     Genesis.
-*/
+ * 2025/12/19              1.0.0      ITA     Genesis.
+ * 2026/01/11  2026/01/16  1.0.1      ITA     Working with the MultiSelectionDropdown no longer requires a Collections context provider.
+ */
 
-/** VERY IMPORTANT!!!
+ /** VERY IMPORTANT!!!
  * Depending on how you are testing the components, you need to uncomment the appropriate import statements below.
  * 
  * Test type 1:
  * If you are testing the dropdown components as part of this project,
- * then import MultiSelectionDropdown and useCollectionsContext from the local filepath of this project.
+ * then import MultiSelectionDropdown from the local filepath of this project.
  * 
  * Test type 2:
  * If you are testing the component as an npm package, then import from 'dropdowns-js'.
@@ -23,14 +24,13 @@
  */
 
 // Test type 1: Local project testing.
-// import { useCollectionsContext } from './dropdowns/CollectionsProvider';
 // import { MultiSelectionDropdown } from './dropdowns/MultiSelectionDropdown';
 
 // Test type 2: NPM package testing.
-import { MultiSelectionDropdown, useCollectionsContext } from 'dropdowns-js';
+import { MultiSelectionDropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /*======= Collections/lists to be used to illustrate how to use a MultiselectionDropdownObj ============*/
 const interests = ["Education", "Sport", "Movies", "Cars"];
@@ -92,64 +92,32 @@ const carMakes = [
 
 export default function MultiSelectionDropdownTest() {
     const [output, setOutput] = useState('');
-    const [aKey, setAKey] = useState(0);
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
+    const [topics, setTopics] = useState([]);
+    const [selectedTopics, setSelectedTopics] = useState([]);
+    const [selectedInterests, setSelectedInterests] = useState([]);
 
-    const collectionNames = {
-        INTERESTS: "INTERESTS",
-        TOPICS: "TOPICS"
-    };
-
-    useEffect(()=> {
-        if (!collectionExists(collectionNames.INTERESTS)) {
-            // Create an INTERESTS collection sorted in ascending order.
-            addCollection(collectionNames.INTERESTS, // collection name
-                          interests, // collection data
-                          1, // maximum number of selections
-                          true, // primitive type data (string in this case)
-                          'asc'); // asc - sort order 
-        }
-        if (!collectionExists(collectionNames.TOPICS)) {
-            // Create a topics collection sorted in ascending order. Initially empty pending the selection of interests
-            addCollection(collectionNames.TOPICS,
-                            [], // empty
-                            5, // allow max 5 selections
-                            true, // primitive type data
-                            'asc'); 
-        }
-    }, []);
-
-    /**Respond when the user has chosen an interest */
-    function interestSelected() {
-        // Obtain the selected items. Only 1 selection was made (size 1 array)
-        const selectedInterest = getSelected(collectionNames.INTERESTS)[0];
-
-        let updateData = [];
-        if (selectedInterest === "Education") // Education selected
-            updateData = education;
-        else if (selectedInterest === "Sport") // Sport selected
-            updateData = sport;
-        else if (selectedInterest === "Movies") // Movies selected
-            updateData = movies;
-        else if (selectedInterest === "Cars")
-            updateData = carMakes;
-
-        updateCollection(collectionNames.TOPICS, updateData);
-
-        // Force the re-render the topics Dropdown, since its data has been updated.
-        setAKey(aKey + .0001);
+    /**Respond interest selection */
+    function interestSelected(pInterests) {
+        setSelectedInterests(pInterests);
+        let topicUpdate = [];
+        pInterests.forEach(item=> {
+            if (item === "Education") // Education selected
+                topicUpdate = [ ...topicUpdate, ...education ];
+            else if (item === "Sport") // Sport selected
+                topicUpdate = [ ...topicUpdate, ...sport ];
+            else if (item === "Movies") // Movies selected
+                topicUpdate = [ ...topicUpdate,...movies ];
+            else if (item === "Cars")
+                topicUpdate = [ ...topicUpdate, ...carMakes ];
+        });
+        setTopics(prev=> topicUpdate);
+        setSelectedTopics(prev=> [topicUpdate[0], topicUpdate[1]]);
     }
 
-    function topicSelected() {
-        const selectedInterest = getSelected(collectionNames.INTERESTS)[0]; // string
-        const selectedTopics = getSelected(collectionNames.TOPICS); // array
-        
-        setOutput(<p>{`${selectedInterest} => `}<br/>{selectedTopics.join(", ").trim()}</p>);
+    /**Respond topic selection */
+    function topicSelected(selTopics) {
+        setSelectedTopics(prev=> selTopics);
+        setOutput(prev=> (<p>{`${selectedInterests.join(", ").trim()} => `}<br/>{selTopics.join(", ")}</p>));
     }
 
     return (
@@ -158,7 +126,10 @@ export default function MultiSelectionDropdownTest() {
             <p>Select an interest, and then your topic</p>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label style={{width: '70px'}}>Choose your interest</label>
-                <MultiSelectionDropdown label='Interests' collectionName={collectionNames.INTERESTS}
+                <MultiSelectionDropdown
+                    label='Interests'
+                    data={interests}
+                    maxNumSelections={2}
                     onItemsSelected={interestSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />
@@ -166,7 +137,11 @@ export default function MultiSelectionDropdownTest() {
 
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label style={{width: '70px'}}>Topics</label>
-                <MultiSelectionDropdown key={aKey} collectionName={collectionNames.TOPICS} label='Topics'
+                <MultiSelectionDropdown
+                    label='Topics'
+                    data={topics}
+                    maxNumSelections={5}
+                    selectedData={selectedTopics}
                     onItemsSelected={topicSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               

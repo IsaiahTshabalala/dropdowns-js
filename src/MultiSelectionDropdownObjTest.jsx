@@ -4,9 +4,10 @@
  * 
  * Change Log
  * =========================================================
- * Date        Version   Author  Description
+ * Start Date  End Date    Version   Dev     Description
  * =========================================================
- * 2025/12/19  1.0.0     ITA     Genesis.
+ * 2025/12/19              1.0.0     ITA     Genesis.
+ * 2026/01/11  2026/01/16  1.0.1     ITA     Working with MultiSelectionObj dropdown no longer requires a Collections context provider.
 */
 
 /** VERY IMPORTANT!!!
@@ -14,7 +15,7 @@
  * 
  * Test type 1:
  * If you are testing the dropdown components as part of this project,
- * then import MultiSelectionDropdown and useCollectionsContext from the local filepath of this project.
+ * then import MultiSelectionDropdown from the local filepath of this project.
  * 
  * Test type 2:
  * If you are testing the component as an npm package, then import from 'dropdowns-js'.
@@ -24,14 +25,13 @@
  */
 
 // Test Type 1: local import.
-// import { useCollectionsContext } from './dropdowns/CollectionsProvider';
 // import { MultiSelectionDropdownObj } from './dropdowns/MultiSelectionDropdownObj';
 
 // Test type 2: package import.
 import 'dropdowns-js/style.css';
-import { MultiSelectionDropdownObj, useCollectionsContext } from 'dropdowns-js';
+import { MultiSelectionDropdownObj } from 'dropdowns-js';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 /*======= Collections/lists to be used to illustrate how to use MultiSelectionDropdownObj ============*/
 const drivingCodesZA = [
@@ -52,7 +52,7 @@ const drivers = [
     id: "771217"
   },
   {
-    fullName: "Naledi Khumalo",
+    fullName: "Pieter Botha",
     licenceCode: "EB",
     id: "850412"
   },
@@ -151,75 +151,42 @@ const drivers = [
 
 /*=======================================================================================*/
 export default function MultiSelectionDropdownObjTest() {
+    const [driversPerLicenceCode, setDriversPerLicenceCode] = useState([]);
+    const [selectedDrivers, setSelectedDrivers] = useState(useState([]));
     const [output, setOutput] = useState();
-    const [dropdownKey2, setDropdownKey2] = useState(0);
-    const keyStep = .000001;
-    const { 
-        addCollection,
-        collectionExists,
-        updateCollection,
-        getSelected
-    } = useCollectionsContext();
 
-    const collectionNames = {
-        DRIVING_CODES: "DRIVING_CODES",
-        DRIVERS: "DRIVERS"
-    };
-
-    useEffect(()=> {
-        if (!collectionExists(collectionNames.DRIVING_CODES)) {
-            // Create DRIVING_CODES collection sorted in ascending order.
-            addCollection(collectionNames.DRIVING_CODES, // collection name
-                          drivingCodesZA, // collection data
-                          2, // maximum number of selections
-                          false, // object type data
-                          'description asc'); // asc - sort order 
-        }
-        if (!collectionExists(collectionNames.DRIVERS)) {
-            // Create a topics collection sorted in ascending order. Initially empty pending the selection of interests
-            addCollection(collectionNames.DRIVERS,
-                            [], // empty
-                            5, // allow max 5 selections
-                            false, // object type data.
-                            'fullName asc'); 
-        }
-    }, []);
-
-    /**Respond when the user has chosen an interest */
-    function drivingCodeSelected() {
-        // Obtain the selected driving codes.
-        const selectedDrivingCodes = getSelected(collectionNames.DRIVING_CODES);
-
+    /**Respond when the user has chosen driving codes */
+    function drivingCodesSelected(drivCodes) {
         // Create a string array of driving codes.
-        const strSelectedCodes = selectedDrivingCodes.map((drivingCode)=> drivingCode.code);
+        const strSelectedCodes = drivCodes.map((drivCode)=> drivCode.code);
         const updateData = drivers.filter(driver=> {
             return strSelectedCodes.includes(driver.licenceCode);
-        });        
+        });    
 
-        updateCollection(collectionNames.DRIVERS, updateData);
-
-        // Force the re-render the drivers MultiselectionDropdownObj, since its data has been updated.
-        setDropdownKey2(dropdownKey2 + keyStep);
+        setDriversPerLicenceCode(updateData);
+        setSelectedDrivers(updateData);
     }
 
-    function driversSelected() {
-        const selectedDrivers = [...getSelected(collectionNames.DRIVERS)].map(driver => driver.fullName); // Array
-        setOutput(selectedDrivers.join(', ')); // List of selected drivers' names.
+    function driversSelected(selDrivers) {
+        setSelectedDrivers(selDrivers);
+        setOutput(selDrivers.map(selDriv=> `${selDriv.fullName} (${selDriv.licenceCode})`).join(', ')); // List of selected drivers' names.
     }
 
     return (
         <div className='container' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>MultiSelectionDropdownObj Example</h1>
-            <p>Select an interest, and then your topic</p>
+            <p>Choose the driving licence codes, and then pick your drivers</p>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes-dropdown' style={{width: '100px'}}>Lic. Codes</label>
                 <MultiSelectionDropdownObj
                     id= 'driving-codes-dropdown'
                     label='Driving Licence Codes'
-                    collectionName={collectionNames.DRIVING_CODES}
+                    data={drivingCodesZA}
+                    sortFields={['description']}
                     valueName='code'
                     displayName='description'
-                    onItemsSelected={drivingCodeSelected}
+                    maxNumSelections={3}
+                    onItemsSelected={drivingCodesSelected}
                     isDisabled={false}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />
@@ -229,12 +196,14 @@ export default function MultiSelectionDropdownObjTest() {
                 <label htmlFor='drivers-dropdown' style={{width: '100px'}}>Drivers</label>
                 <MultiSelectionDropdownObj
                     id= 'drivers-dropdown'
-                    key={dropdownKey2}
-                    collectionName={collectionNames.DRIVERS}
                     label='Drivers'
+                    data={driversPerLicenceCode}
+                    sortFields={['lastName', 'firstName',]}
                     valueName='id'
                     displayName='fullName'
+                    maxNumSelections={5}
                     onItemsSelected={driversSelected}
+                    selectedData={selectedDrivers}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               
             </div>
