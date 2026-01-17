@@ -129,6 +129,7 @@ export default function MultiSelectionDropdownTest() {
                 <MultiSelectionDropdown
                     label='Interests'
                     data={interests}
+                    sortOrder='desc'
                     maxNumSelections={2}
                     onItemsSelected={interestSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}

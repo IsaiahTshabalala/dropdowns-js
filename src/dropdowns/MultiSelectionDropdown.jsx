@@ -14,6 +14,7 @@
  * 2025/12/26                ITA    1.07      Changed the arrow symbols to + and - for better cross-platform rendering.
  * 2025/12/29                ITA    1.09      Placeholder to show the name of the data, as provided by the label attribute.
  * 2026/01/11  2026/01/16    ITA    1.10      Improved the component so that it stores its own data instead of relying on the Collections context provider.
+ * 2026/01/17  2026/01/17    ITA    1.11      Renamed sortDirection to sortOrder, so as to maintain attribute naming consistency across the dropdowns.
  */
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
@@ -23,7 +24,7 @@ import './dropdown.css';
 /** Provide a multi-selection, searchable dropdown that takes an array of primitve types.
  * @param {String} label for screen readers.
  * @param {Array} data An array of primitive type items to display in the multiselection dropdown.
- * @param {String} [sortDirection='asc'] 'asc' or 'desc'. Default = 'asc'.
+ * @param {String} [sortOrder='asc'] 'asc' or 'desc'. Default = 'asc'.
  * @param {Array} [selectedData=[]] pre-set array of selected items. Optional.
  * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
  * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
@@ -34,7 +35,7 @@ import './dropdown.css';
 export function MultiSelectionDropdown({
                     label, // label with which to describe the dropdown.
                     data,
-                    sortDirection = 'asc',
+                    sortOrder = 'asc',
                     selectedData = [],
                     maxNumSelections = null,
                     isDisabled = false,
@@ -104,7 +105,7 @@ export function MultiSelectionDropdown({
 
     /**Comparison function used in the sorting of dropdown elements. */
     function compareFn(item1, item2) {
-        return compare(item1, item2, sortDirection);
+        return compare(item1, item2, sortOrder);
     }
     
     /** Respond the user typing text to search for items */
@@ -248,9 +249,8 @@ export function MultiSelectionDropdown({
 MultiSelectionDropdown.propTypes = {
     label: PropTypes.string.isRequired,
     data: PropTypes.array.isRequired,
-    sortDirection: PropTypes.string,
+    sortOrder: PropTypes.string,
     selectedData: PropTypes.array.isRequired,
-    selectedItems: PropTypes.array,
     maxNumSelections: PropTypes.number,
     isDisabled: PropTypes.bool,
     onItemsSelected: PropTypes.func,

@@ -37,7 +37,11 @@ Updated the current package to use the latest some-common-functions-js package. 
 - Collections context and provider removed, and no longer necessary for use by the consumers of this package.
 
 ## 2026/01/16 to 2026/01/16 - Version 1.1.2
-- Removed the multiple dropdown usage example from the README file. It had not been updated when Collections context and provider was removed. The remaining dropdown usage examples suffice.
+- Removed the multiple dropdown usage example from the README file. It had not been updated when Collections context and provider was removed. The remaining dropdown usage examples suffice.  
+
+## 2026/01/17 to 2026/01/17 - Version 1.1.3
+- Removing attributes that do not apply to Dropdown component.
+- Renaming 'sortDirection' in MultiSelectionDropdown to 'sortOrder', ensuring consistent naming of attributes across the dropdown components.  
 
   
 

@@ -38,7 +38,7 @@ export default function MyComponent {
   
 `data` - data to display in the dropdown, for the user to select from.  
 
-`sortDirection` - for dropdowns using primitive type array input. Specifies the sort order of the dropdown data. 'asc' or 'desc'. Default is 'asc'.
+`sortOrder` - for dropdowns using primitive type array input. Specifies the sort order of the dropdown data. 'asc' or 'desc'. Default is 'asc'.
 
 `sortFields` - for dropdonws using object type array input. An array. Specifies the field sort orders of the dropdown data. e.g. ['score desc', 'numGames asc']. If a field is to be sorted ascending order, you can ommit asc. .e.g.  ['fullName', 'score desc'].
 
@@ -83,7 +83,8 @@ export default function MyComponent() {
 
                 <Dropdown
                     label={'Fruits'}
-                    data={fruits} sortDirection='asc'
+                    data={fruits}
+                    sortOrder='asc'
                     onItemSelected={fruitSelected}
                     selected={"BANANA"}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}

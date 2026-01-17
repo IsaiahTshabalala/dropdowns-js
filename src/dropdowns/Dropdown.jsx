@@ -16,6 +16,8 @@
  * 2025/12/26                ITA     1.07      Changed the arrow symbols to + and - for better visibility across different platforms.
  * 2025/12/29                ITA     1.08      Placeholder must show the name of the data, as provided by the label attribute.
  * 2026/01/11  2026/01/16    ITA     1.09      Improved the component so that it stores its own data instead of relying on the Collections context provider.
+ * 2026/01/17  2026/01/17    ITA     1.10      Removed attributes that do no apply to this component.
+ *                                             Corrected the description of 'selected' attribute in the function header.
  */
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
@@ -27,11 +29,10 @@ import { compare } from 'some-common-functions-js';
  * @param {array} data  primitve type array data items.
  * @param {string} [sortOrder='asc'] sort order. Default 'asc'.
  * @param {function} [onItemSelected=null] callback function passed by the parent component. Optional.
- * @param {null} [selected=null] default selected item. Must be one of data array elements. Optional.
+ * @param {*} [selected=null] default selected item. Must be one of data array elements. Optional.
  * @param {boolean} [isDisabled=false] optional. Set to true if you want to disable component.
  * @param {Function} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
  * @param {object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
- * @param {object} buttonStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
  */
 export function Dropdown({
                     label, // label with which to describe the dropdown.
@@ -199,10 +200,8 @@ export function Dropdown({
 Dropdown.propTypes = {
     label: PropTypes.string.isRequired,
     data: PropTypes.array.isRequired,
-    sortDirection: PropTypes.string,
-    selectedData: PropTypes.array.isRequired,
-    selectedItems: PropTypes.array,
-    maxNumSelections: PropTypes.number,
+    sortOrder: PropTypes.string,
+    selected: PropTypes.any,
     isDisabled: PropTypes.bool,
     onItemsSelected: PropTypes.func,
     dropdownStyle: PropTypes.shape({
