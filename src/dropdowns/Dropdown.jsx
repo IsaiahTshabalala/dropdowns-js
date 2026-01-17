@@ -18,6 +18,7 @@
  * 2026/01/11  2026/01/16    ITA     1.09      Improved the component so that it stores its own data instead of relying on the Collections context provider.
  * 2026/01/17  2026/01/17    ITA     1.10      Removed attributes that do no apply to this component.
  *                                             Corrected the description of 'selected' attribute in the function header.
+ * 2026/01/17  2026/01/17    ITA     1.11      Corrected the component proptypes to include onItemSelected, instead of onItemsSelected.
  */
 import PropTypes from 'prop-types';
 import { useState, useMemo } from 'react';
@@ -203,7 +204,7 @@ Dropdown.propTypes = {
     sortOrder: PropTypes.string,
     selected: PropTypes.any,
     isDisabled: PropTypes.bool,
-    onItemsSelected: PropTypes.func,
+    onItemSelected: PropTypes.func,
     dropdownStyle: PropTypes.shape({
         color: PropTypes.string.isRequired, // text color
         backgroundColor: PropTypes.string.isRequired,

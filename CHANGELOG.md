@@ -43,6 +43,10 @@ Updated the current package to use the latest some-common-functions-js package. 
 - Removing attributes that do not apply to Dropdown component.
 - Renaming 'sortDirection' in MultiSelectionDropdown to 'sortOrder', ensuring consistent naming of attributes across the dropdown components.  
 
+## 2026/01/17 to 2026/01/17 - Version 1.1.4
+Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelected, since this is a single selection dropdown.
+
+
   
 
 
