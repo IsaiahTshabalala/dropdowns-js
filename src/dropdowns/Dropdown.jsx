@@ -19,9 +19,10 @@
  * 2026/01/17  2026/01/17    ITA     1.10      Removed attributes that do no apply to this component.
  *                                             Corrected the description of 'selected' attribute in the function header.
  * 2026/01/17  2026/01/17    ITA     1.11      Corrected the component proptypes to include onItemSelected, instead of onItemsSelected.
+ * 2026/01/19  2026/01/19    ITA     1.12      Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
  */
 import PropTypes from 'prop-types';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import './dropdown.css';
 import { compare } from 'some-common-functions-js';
 
@@ -44,6 +45,7 @@ export function Dropdown({
                     dropdownStyle, // Styling object with fields {color, backgroundColor, borderColor (optional), fontSize}.
                     isDisabled = false})
 {
+    const uid = useId(); // Unique ID.
     const [showItems, setShowItems] = useState(false); // true or false. Show or hide dropdown items.
     const [searchText, setSearchText] = useState('');
 
@@ -142,7 +144,11 @@ export function Dropdown({
         if (list.length > 0)
             setShowItems(true);
     } // function showList() {
-
+    
+    const ids = {
+        dropdownSearch: `dropdownSearch-${uid}`,
+        dropdown: `dropdown-${uid}`
+    };
     return (
         <div className={`dropdown-js dropdown-js-rounded
                          ${borderColor && `dropdown-js-border ${borderColor}`}`}
@@ -150,14 +156,14 @@ export function Dropdown({
 
             <div className='dropdown-js-input-wrapper dropdown-js-rounded' style={inputStyle}>                
                 <input 
-                     id='dropdownSearch' name='dropdownSearch'
+                    id={ids.dropdownSearch} name='dropdownSearch'
                     className={`dropdown-js-input dropdown-js-rounded`} autoComplete='off'
                     type='text'
                     style={inputStyle}
                     role='combobox'
                     aria-placeholder={`Type to Search for ${label}`}
                     aria-required={true} 
-                    aria-controls='dropdown'
+                    aria-controls={ids.dropdown}
                     aria-autocomplete='list'
                     aria-haspopup={'listbox'}
                     aria-expanded={showItems}
@@ -175,7 +181,7 @@ export function Dropdown({
             </div>
            
             <div className={`dropdown-js-padding dropdown-js-menu ${(!showItems) && 'dropdown-js-hide'}`}
-                 id='dropDown' name='dropDown' 
+                 id={ids.dropdown} name='dropDown' 
                  role='listbox' aria-expanded={showItems} 
                  disabled={isDisabled} aria-label={label} style={{...inputStyle, marginTop: '3.5px'}}
             >

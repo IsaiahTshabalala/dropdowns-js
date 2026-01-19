@@ -26,25 +26,28 @@ Sync version with package.json version.
 - Updated vite.config to tell vite to treat React as an external dependency.
 - Updated package.json to treat react and react-dom as a dev dependency as well, in addition to being a peer dependency.
 
-## 2025/12/27 - Version 1.0.8
+## 2025/12/27 - Version 1.0.8 - ITA
 - Efficient use of the object functions from some-common-functions-js, which are recursive, in the CollectionsProvider context hook.
 - Placeholder text in the text input of the dropdowns to also show the name of the data, as provided by the label attribute.
 
-## 2026/01/01 - Version 1.0.9
+## 2026/01/01 - Version 1.0.9 - ITA
 Updated the current package to use the latest some-common-functions-js package. Given the changes that were done to change recursive functions to iterative, thereby overcoming stack limits imposed by browsers.  
 
-## 2026/01/11 to 2026/01/16 - Version 1.1.1
+## 2026/01/11 to 2026/01/16 - Version 1.1.1 - ITA
 - Collections context and provider removed, and no longer necessary for use by the consumers of this package.
 
-## 2026/01/16 to 2026/01/16 - Version 1.1.2
+## 2026/01/16 to 2026/01/16 - Version 1.1.2 - ITA
 - Removed the multiple dropdown usage example from the README file. It had not been updated when Collections context and provider was removed. The remaining dropdown usage examples suffice.  
 
-## 2026/01/17 to 2026/01/17 - Version 1.1.3
+## 2026/01/17 to 2026/01/17 - Version 1.1.3 - ITA
 - Removing attributes that do not apply to Dropdown component.
 - Renaming 'sortDirection' in MultiSelectionDropdown to 'sortOrder', ensuring consistent naming of attributes across the dropdown components.  
 
-## 2026/01/17 to 2026/01/17 - Version 1.1.4
+## 2026/01/17 to 2026/01/17 - Version 1.1.4 - ITA
 Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelected, since this is a single selection dropdown.
+
+## 2026/01/19 to 2026/01/19 - Version 1.1.5 - ITA
+* Ensured the uniqueness of ids of the concerned html elements of the dropdowns, even when the same dropdown component is used multiple times in the same page.
 
 
   

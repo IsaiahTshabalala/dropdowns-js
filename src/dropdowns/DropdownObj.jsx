@@ -10,19 +10,19 @@
  * 2024/06/18                ITA    1.01    Add version number.
  * 2024/07/14                ITA    1.02    Use the underlying field value (valueName) as the key when displaying collection items.
  * 2024/09/17                ITA    1.03    Toggle (add/remove) class name (w3-show) for displaying list items. Remove the extra style attribute.
-                                            Adjust width and add borders.
-                                            Import context directly.
-* 2024/10/11                 ITA   1.04     Reduce the width of the text box so that it appears side by side with the drop-down on even smaller screens.
-* 2024/10/28                 ITA   1.05     Improve the responsiveness of the dropdown.
-* 2025/12/18                 ITA   1.06     Renamed to from Dropdown2 to DropdownObj, and performed further tweaks and tests towards preparing this component
-                                            for npm publishing.
-* 2025/12/26                 ITA   1.07     Changed the arrow symbols to + and - for better visibility across different platforms.
-* 2025/12/29                 ITA   1.08     Placeholder must show the name of the data as provided by the label attribute.
-* 2026/01/11   2026/01/16    ITA   1.09     Improved the component so that it stores its own data instead of relying on the Collections context provider.
-
+ *                                          Adjust width and add borders.
+ *                                          Import context directly.
+ * 2024/10/11                ITA    1.04    Reduce the width of the text box so that it appears side by side with the drop-down on even smaller screens.
+ * 2024/10/28                ITA    1.05    Improve the responsiveness of the dropdown.
+ * 2025/12/18                ITA    1.06    Renamed to from Dropdown2 to DropdownObj, and performed further tweaks and tests towards preparing this component
+ *                                          for npm publishing.
+ * 2025/12/26                ITA    1.07    Changed the arrow symbols to + and - for better visibility across different platforms.
+ * 2025/12/29                ITA    1.08    Placeholder must show the name of the data as provided by the label attribute.
+ * 2026/01/11   2026/01/16   ITA    1.09    Improved the component so that it stores its own data instead of relying on the Collections context provider.
+ * 2026/01/19   2026/01/19   ITA    1.10    Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
 */
 import PropTypes from 'prop-types';
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import './dropdown.css';
 import { get, getPaths as getObjPaths, objCompare} from 'some-common-functions-js'
 
@@ -49,6 +49,7 @@ export function DropdownObj({
                     dropdownStyle
                 })
 {
+    const uid = useId();
     const [showItems, setShowItems] = useState(null); // true or false. Show or hide dropdown items.
     const [paths, setPaths] = useState('');
     const [searchText, setSearchText] = useState('');
@@ -167,6 +168,11 @@ export function DropdownObj({
             setShowItems(true);
     }
 
+    const ids = {
+        dropdownSearch: `dropdownObjSearch-${uid}`,
+        dropdownObj: `dropdownObj-${uid}`
+    };
+
     return (
         <div className={`dropdown-js dropdown-js-rounded
                          ${borderColor && `dropdown-js-border ${borderColor}`}`}
@@ -174,13 +180,13 @@ export function DropdownObj({
 
             <div  className='dropdown-js-input-wrapper dropdown-js-rounded' style={inputStyle}>
                 <input 
-                    id='dropdownObjSearch' name='dropdownObjSearch'
+                    id={ids.dropdownSearch} name='dropdownObjSearch'
                     className={`dropdown-js-input dropdown-js-rounded`}
                     style={inputStyle}
                     type='text' autoComplete='off'
                     role='combobox'
                     aria-autocomplete='list'
-                    aria-controls='dropdownObj'
+                    aria-controls={ids.dropdownObj}
                     aria-expanded={showItems}
                     aria-placeholder={`Type to Search for ${label}`} aria-required={true} onChange={e=> handleSearch(e)}
                     disabled={isDisabled}
@@ -194,7 +200,7 @@ export function DropdownObj({
             </div>
             
             <div className={`dropdown-js-padding dropdown-js-menu ${(!showItems) && 'dropdown-js-hide'}`}
-                 id='dropDownObj' name='dropDownObj' 
+                 id={ids.dropdownObj} name='dropDownObj' 
                  role='listbox' aria-expanded={showItems} style={{...inputStyle, marginTop: '3.5px'}} >
                 {list.map((item, index)=> {
                         return (

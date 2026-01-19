@@ -15,9 +15,10 @@
  * 2025/12/29                ITA    1.09      Placeholder to show the name of the data, as provided by the label attribute.
  * 2026/01/11  2026/01/16    ITA    1.10      Improved the component so that it stores its own data instead of relying on the Collections context provider.
  * 2026/01/17  2026/01/17    ITA    1.11      Renamed sortDirection to sortOrder, so as to maintain attribute naming consistency across the dropdowns.
+ * 2026/01/19  2026/01/19    ITA    1.12      Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
  */
 import PropTypes from 'prop-types';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useId } from 'react';
 import { compare } from 'some-common-functions-js';
 import './dropdown.css';
 
@@ -44,6 +45,7 @@ export function MultiSelectionDropdown({
                     buttonStyle // Styling for the DONE button
                 })
 {
+    const uid = useId(); // unique id.
     const [showItems, setShowItems] = useState(false); /* true or false: show or hide dropdown items */
 
     // Store dropdown input data as sorted.
@@ -174,6 +176,12 @@ export function MultiSelectionDropdown({
             setShowItems(true);
     } // function showList() {
 
+    const ids = {
+        multiSelectionDropdownSearch: `multiSelectionDropdown-${uid}`,
+        multiSelectionDropdown: `multiSelectionDropdown-${uid}`,
+        selectedItems: `selectedItems-${uid}`
+    };
+
     return (
         <div className={`dropdown-js dropdown-js-rounded 
                          ${borderColor && `dropdown-js-border ${borderColor}`}`}
@@ -182,14 +190,14 @@ export function MultiSelectionDropdown({
             <div className='dropdown-js-input-wrapper dropdown-js-rounded' style={inputStyle}>
                 <div>
                     <input className={`dropdown-js-input dropdown-js-rounded`}
-                        id='multiselectionDropdownSearch' name='multiselectionDropdownSearch'
+                        id={ids.multiSelectionDropdownSearch} name='multiselectionDropdownSearch'
                         style={inputStyle}
                         type='text' autoComplete='off'
                         role='combobox'
                         aria-label={label}
                         aria-placeholder={`Type to search for ${label}`}
                         aria-autocomplete='list'
-                        aria-controls='multiSelectionDropdown'
+                        aria-controls={ids.multiSelectionDropdown}
                         aria-expanded={showItems}
                         aria-haspopup='listbox'
                         onChange={e=> handleSearch(e)}
@@ -206,7 +214,7 @@ export function MultiSelectionDropdown({
 
             {/* Selected items */}
             <div className='dropdown-js-padding dropdown-js-selected-wrapper dropdown-js-selected-container'>
-                <div id='multiSelectionDropdown-selectedItems' className='dropdown-js-selected-items'
+                <div id={ids.selectedItems} className='dropdown-js-selected-items'
                      aria-label={`Selected ${label} options`} aria-live='polite' >
                     {selectedItems.map((item)=> {                            
                             return ( 
@@ -223,7 +231,7 @@ export function MultiSelectionDropdown({
 
             {/* Dropdown items */}
             <div className={`dropdown-js-padding dropdown-js-menu dropdown-js-rounded ${(!showItems) && 'dropdown-js-hide'}`}
-                 style={inputStyle} id='multiSelectionDropdown' name='multiSelectionDropdown'
+                 style={inputStyle} id={ids.multiSelectionDropdown} name='multiSelectionDropdown'
                  role='listbox' aria-multiselectable={true} aria-expanded={showItems} >
                 {list.map((item, index)=> {
                         return (
