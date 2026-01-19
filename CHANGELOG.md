@@ -49,10 +49,5 @@ Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelect
 ## 2026/01/19 to 2026/01/19 - Version 1.1.5 - ITA
 * Ensured the uniqueness of ids of the concerned html elements of the dropdowns, even when the same dropdown component is used multiple times in the same page.
 
-
-  
-
-
-
-  
-
+## 2026/01/19 to 2026/01/19 - Version 1.1.6 - ITA
+* MultiSelectionDropdown: SelectedData attribute is meant to be optional. Updated accordingly.

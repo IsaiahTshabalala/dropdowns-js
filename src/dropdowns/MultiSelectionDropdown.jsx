@@ -16,6 +16,7 @@
  * 2026/01/11  2026/01/16    ITA    1.10      Improved the component so that it stores its own data instead of relying on the Collections context provider.
  * 2026/01/17  2026/01/17    ITA    1.11      Renamed sortDirection to sortOrder, so as to maintain attribute naming consistency across the dropdowns.
  * 2026/01/19  2026/01/19    ITA    1.12      Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
+ * 2026/01/19  2026/01/19    ITA    1.13      SelectedData attribute is meant to be optional. Updated accordingly.
  */
 import PropTypes from 'prop-types';
 import { useState, useMemo, useId } from 'react';
@@ -258,7 +259,7 @@ MultiSelectionDropdown.propTypes = {
     label: PropTypes.string.isRequired,
     data: PropTypes.array.isRequired,
     sortOrder: PropTypes.string,
-    selectedData: PropTypes.array.isRequired,
+    selectedData: PropTypes.array,
     maxNumSelections: PropTypes.number,
     isDisabled: PropTypes.bool,
     onItemsSelected: PropTypes.func,
