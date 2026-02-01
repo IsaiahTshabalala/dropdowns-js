@@ -8,6 +8,8 @@
  * =========================================================
  * 2025/12/19              1.0.0     ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1     ITA     Working with MultiSelectionObj dropdown no longer requires a Collections context provider.
+ * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
+ * ==========================================================
 */
 
 /** VERY IMPORTANT!!!
@@ -204,6 +206,7 @@ export default function MultiSelectionDropdownObjTest() {
                     maxNumSelections={5}
                     onItemsSelected={driversSelected}
                     selectedData={selectedDrivers}
+                    selReset={false}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               
             </div>

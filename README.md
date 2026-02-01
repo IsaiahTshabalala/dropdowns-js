@@ -49,7 +49,9 @@ export default function MyComponent {
 `selectedData` - for multi-selection dropdowns. An array of pre-set selection of options. This is an array of multi-selection dropdowns. Optional.
 
 `selected` - for single selection dropdowns. A pre-set selected option.
-  
+
+`selReset` - optional. When set to true, selected item(s) can be set only by the parent component, via selected (single selection dropddowns) or selectedData (multi-selection dropdowns), and the user cannot make a selection/deselection.
+
 `onItemSelected` - for single selection dropdowns. A function to call when the user has made a selection.
   
 `onItemsSelected` - for multi-selection dropdowns. A function to call when the user has made a selection. Or removed items from their selection.

@@ -20,9 +20,12 @@
  *                                             Corrected the description of 'selected' attribute in the function header.
  * 2026/01/17  2026/01/17    ITA     1.11      Corrected the component proptypes to include onItemSelected, instead of onItemsSelected.
  * 2026/01/19  2026/01/19    ITA     1.12      Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
+ * 2026/01/20  2026/02/01    ITA     1.13      Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected item when this value changes in the parent component.
+ *                                             Combined searchItems and list state variables into a single variable: list.
+ *                                             Improved the logic for setting selected items.
  */
 import PropTypes from 'prop-types';
-import { useState, useMemo, useId } from 'react';
+import { useState, useMemo, useId, useEffect } from 'react';
 import './dropdown.css';
 import { compare } from 'some-common-functions-js';
 
@@ -31,9 +34,11 @@ import { compare } from 'some-common-functions-js';
  * @param {array} data  primitve type array data items.
  * @param {string} [sortOrder='asc'] sort order. Default 'asc'.
  * @param {function} [onItemSelected=null] callback function passed by the parent component. Optional.
- * @param {*} [selected=null] default selected item. Must be one of data array elements. Optional.
- * @param {boolean} [isDisabled=false] optional. Set to true if you want to disable component.
+ * @param {*} [selected=null] optional default selected item. Must be one of data array elements. Optional.
+ * @param {boolean} [selReset=true] When set to true, the dropdown resets to the default selected item when this is updated in the parent component.
+ * @param {boolean} [isDisabled=false] optional. Set to true if the component must be disabled.
  * @param {Function} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
+ * @param {boolean} [selReset=false] whether to update to default selected item if it is updated from the parent component.
  * @param {object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
  */
 export function Dropdown({
@@ -42,6 +47,7 @@ export function Dropdown({
                     sortOrder = 'asc',
                     onItemSelected = null, // Function to pass on the value of the selected item to the parent component
                     selected = null, // Initial selected item.
+                    selReset = false,
                     dropdownStyle, // Styling object with fields {color, backgroundColor, borderColor (optional), fontSize}.
                     isDisabled = false})
 {
@@ -53,20 +59,13 @@ export function Dropdown({
         return data.toSorted(compareFn);
     }, [data]);
 
-    // Dropdown items matching text typed by the user.
-    const searchItems = useMemo(()=> {
-        if (searchText.length === 0)
-            return [];
-        const searchTextUppercase = searchText.toUpperCase();
-        return sortedData.filter(item=> item.toUpperCase().includes(searchTextUppercase));
-    }, [sortedData, searchText]);
-
     // Items to display in the dropdown.
     const list = useMemo(()=> {
         if (searchText.length === 0)
             return sortedData;
 
-        return searchItems;
+        const searchTextUppercase = searchText.toUpperCase();
+        return sortedData.filter(item=> item.toUpperCase().includes(searchTextUppercase));
     }, [sortedData, searchText]);
 
     // Text to display in the textbox. Could be search text or currently selected item.
@@ -75,20 +74,32 @@ export function Dropdown({
     // Use to set the user selected item only!! For getting the currently selected use selectedItem.
     const [currSelected, setCurrSelectedItem] = useState(null);
 
-    // Use to get the currently selected item. To set the user selected item, use setCurrSelectedItem() function.
+    // Use to get the currently selected item only!! To set the user selected item, use setCurrSelectedItem() function.
     const selectedItem = useMemo(()=> {
+        // If selReset is true, then always return selected (default selection).
+        // If the user has not made any selection yet, return selected (default selection).
+        // Else return the item selected by the user (currSelectedItem).
         let selItem = '';
-        if (currSelected) {
-            selItem = currSelected;
+        let idx;
+        if ((currSelected) && (selReset === false)) {
+            idx = data.findIndex(item=> item === currSelected); // Ensure that the currently selected item is still in the data array.
+            if (idx >= 0)
+                selItem = data[idx];
         }
         else if (selected) {
-            const idx = data.findIndex(item=> item === selected);
+            idx = data.findIndex(item=> item === selected);
             if (idx >= 0)
                 selItem = data[idx];
         }
         setDisplayValue(selItem);
         return selItem;
-    }, [selected, currSelected]);
+    }, [selReset, selected, currSelected]);
+
+    const [selKey, setSelKey ] = useState(0); // Used to trigger a side-effect when the user has made a selection.
+    useEffect(()=> {
+        if ((selKey > 0) && (currSelected) && (onItemSelected))
+            onItemSelected(selectedItem);
+    }, [selKey]);
 
     const inputStyle = (()=> {
         const aStyle = { 
@@ -111,22 +122,20 @@ export function Dropdown({
     function handleSearch(e) {
         // As the user types, pop up the listbox with matching items, otherwise close the listbox if there's no matching items.
         setSearchText(e.target.value);
-        setDisplayValue(e.target.value);
-        
-        if (searchItems.length === 0)
-            hideList();
-        else
-            showList();
+        setDisplayValue(e.target.value);        
+        showList();
     } // function handleSearch(e)
 
     async function handleItemClick(value) {
+        if (selReset) // Selected item set by the parent component. Do not allow user selection.
+            return;
+
         setDisplayValue(value);
         setSearchText('');
 
         setCurrSelectedItem(value);
-        if (onItemSelected !== null)
-            onItemSelected(value); // Alert the parent component that a value has been selected.
         hideList();
+        setSelKey(prev=> prev + 1); // Trigger the side-effect to alert the parent component.
     } // function handleItemClick(e) {
 
     function toggleShowList() {
@@ -209,6 +218,7 @@ Dropdown.propTypes = {
     data: PropTypes.array.isRequired,
     sortOrder: PropTypes.string,
     selected: PropTypes.any,
+    selReset: PropTypes.bool,
     isDisabled: PropTypes.bool,
     onItemSelected: PropTypes.func,
     dropdownStyle: PropTypes.shape({

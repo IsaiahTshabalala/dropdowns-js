@@ -8,6 +8,7 @@
  * =========================================================
  * 2025/12/18              1.0.0     ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
+ * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
 */
 
 /** VERY IMPORTANT!!!
@@ -165,16 +166,16 @@ export default function DropdownObjTest() {
             return driver.licenceCode === selDrivCode.code;
         });
         setDrivers(updateData);
-        setSelectedDriver(updateData[0]);
-        updateOutput(selDrivCode, updateData[0]);
+        driverSelected(updateData[0]);
     }
 
     function driverSelected(selDriver) {
-        updateOutput(selectedDrivingCode, selDriver);
+        setSelectedDriver({ ...selDriver });
+        updateOutput(selDriver);
     }
 
-    function updateOutput(selDrivCode, selDriver) {
-        setOutput(`${selDriver.fullName} => ${selDrivCode.code}`);
+    function updateOutput(selDriver) {
+        setOutput(`${selDriver.fullName} => ${selDriver.licenceCode}`);
     }
 
     return (
@@ -198,12 +199,13 @@ export default function DropdownObjTest() {
                     label='Drivers'
                     data={drivers} 
                     selected={selectedDriver}
+                    selReset={false}
                     sortFields={['fullName', 'id']}
                     displayName="fullName" valueName="id" onItemSelected={driverSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>
 
-            <p>{output}</p>
+            <p>{output}</p>              
 
         </div>
     );

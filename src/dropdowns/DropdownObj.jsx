@@ -20,17 +20,21 @@
  * 2025/12/29                ITA    1.08    Placeholder must show the name of the data as provided by the label attribute.
  * 2026/01/11   2026/01/16   ITA    1.09    Improved the component so that it stores its own data instead of relying on the Collections context provider.
  * 2026/01/19   2026/01/19   ITA    1.10    Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
+ * 2026/01/20   2026/02/01   ITA    1.11    Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected item when this value changes in the parent component.
+ *                                          Combined searchItems and list state variables into one: list.
+ *                                          Improved the logic for setting selected items.
 */
 import PropTypes from 'prop-types';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState, useEffect } from 'react';
 import './dropdown.css';
-import { get, getPaths as getObjPaths, objCompare} from 'some-common-functions-js'
+import { getPaths as getObjPaths, objCompare} from 'some-common-functions-js'
 
 /** Provide a multi-selection, searchable dropdown that takes an array of objects.
  * @param {String} label for screen readers.
  * @param {Array<Object>} data An array of objects to display in the multiselection dropdown.
  * @param {string} sortFields An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
  * @param {Array<Object>} [selected=null] pre-set selected item. Optional.
+ * @param {boolean} [selReset=true] When set to true, the dropdown resets to the default selected item when this is updated in the parent component.
  * @param {String} displayName the name of the field that will be used for displaying items in the dropdown.
  * @param {String} valueName  the name of the field that will be used as the underlying unique value of each list item.
  * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
@@ -42,6 +46,7 @@ export function DropdownObj({
                     data,
                     sortFields,
                     selected = null,
+                    selReset=false,
                     displayName, // the name of the field that will be used for displaying the list items to the user.
                     valueName, // the name of the field that will be used as the underlying unique value of each list item.
                     isDisabled = false,
@@ -51,17 +56,18 @@ export function DropdownObj({
 {
     const uid = useId();
     const [showItems, setShowItems] = useState(null); // true or false. Show or hide dropdown items.
-    const [paths, setPaths] = useState('');
     const [searchText, setSearchText] = useState('');
+
+    const fieldPaths = useMemo(()=> (data.length > 0? getObjPaths(data[0]) : []), [data]);
 
     const sortedData = useMemo(()=> {
         return data.toSorted(compareFn);
     }, [data]);
 
     // Items matching the text typed by the user.
-    const searchItems = useMemo(()=> {
+    const list = useMemo(()=> {
         if (searchText.length === 0)
-            return [];
+            return sortedData;
         
         // Obtain items matching the typed text.
         const searchTextUpperCase = searchText.toUpperCase();
@@ -69,38 +75,48 @@ export function DropdownObj({
             const itemValue = item[displayName].toUpperCase();
             return itemValue.toUpperCase().includes(searchTextUpperCase);
         });
-    }, [searchText]);
+    }, [searchText, sortedData]);
+
+    const [selKey, setSelKey] = useState(0); // Used to trigger a useEffect when the user has completed a selection.
+
+    useEffect(()=> {
+        if ((selKey > 0) && (currSelectedItem !== null) && onItemSelected) {
+            onItemSelected(selectedItem);
+        }
+    }, [selKey]);
 
     const [displayValue, setDisplayValue] = useState(''); // Text to display in the textbox, could be the selected item or search text typed by the user.
 
      // Use to set the user selected item only!! To get the selected item, use selectedItem
     const [currSelectedItem, setCurrSelectedItem] = useState(null);
 
-     // Use to get the selected item only!! To set the selected item, use setCurrSelectedItem() function.
+    // Use to get the selected item only!! To set the selected item, use setCurrSelectedItem() function.
     const selectedItem = useMemo(()=> {
-        let selItem;
-        if (currSelectedItem) {
-            selItem = { ...currSelectedItem };
+        // If selReset is true, then always return the selected (default selection).
+        // If the user has not made any selection yet, return selected (default selection).
+        // Else return the item selected by the user (currSelectedItem).
+        let selItem = null;
+        let idx;
+        if ((currSelectedItem) && (selReset === false)) {
+            idx = data.findIndex(item=> 
+                (objCompare(item, currSelectedItem, ...fieldPaths) === 0)
+            );
+            if (idx >= 0) // Ensure that the currently selected item is still in the data array.
+                selItem = data[idx];
         }
         else if (selected) {
-            const fieldPaths = getPaths();
-            const idx = data.findIndex(item=> get(item, ...fieldPaths) === get(selected, ...fieldPaths));
+            idx = data.findIndex(item=>
+                (objCompare(item, selected, ...fieldPaths) === 0)
+            );
             if (idx >= 0)
                 selItem = data[idx];
         }
         if (selItem)
             setDisplayValue(selItem[displayName]);
-
+        else
+            setDisplayValue('');
         return selItem;
     }, [selected, currSelectedItem]);
-
-    // Items to display in the dropdown list.
-    const list = useMemo(()=> {
-        if (searchText.length > 0)
-            return searchItems;
-
-        return sortedData;
-    }, [searchText, sortedData]);
 
     const inputStyle = (()=> {
         const aStyle = { 
@@ -117,12 +133,9 @@ export function DropdownObj({
     /**Respond to the user typing text to search for dropdown items */
     async function handleSearch(e) {
         // As the user types, 
-        setSearchText(prev=> e.target.value);
-        setDisplayValue(prev=> e.target.value);
-        if (searchItems.length > 0)
-            showList();
-        else
-            hideList();
+        setSearchText(e.target.value);
+        setDisplayValue(e.target.value);        
+        showList();
     } // function handleSearch(e)
 
     /**Comparison function used in the sorting of dropdown elements. */
@@ -130,26 +143,15 @@ export function DropdownObj({
         return objCompare(item1, item2, ...sortFields);
     }
 
-    /**Calculate the field paths of the objects displayed in the dropdown. */
-    function getPaths() {
-        let tempPaths = paths;
-        if (!tempPaths) {
-            if (data.length > 0)
-                tempPaths = getObjPaths(data[0]);
-
-            setPaths(tempPaths);
-        }
-        return tempPaths;
-    }
-
     /**Respond to selection of an item */
     function handleItemClick(clickedItem) {
-        setCurrSelectedItem(clickedItem);
-
-        if (onItemSelected !== null)
-            onItemSelected(clickedItem); // Alert the parent component that a new selection was made.
-        
+        if (selReset) // Selected item set by the parent component. Do not allow user selection.
+            return;
+            
+        setCurrSelectedItem({...clickedItem});
+        setSearchText('');
         hideList();
+        setSelKey(prev=> prev + 1);
     } // function handleItemClick(e) {
 
     function toggleShowList() {
@@ -227,6 +229,7 @@ DropdownObj.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     sortFields: PropTypes.arrayOf(PropTypes.string).isRequired,
     selected: PropTypes.object,
+    tick: PropTypes.number,
     displayName: PropTypes.string.isRequired,               
     valueName: PropTypes.string.isRequired,
     isDisabled: PropTypes.bool,

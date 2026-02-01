@@ -51,3 +51,8 @@ Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelect
 
 ## 2026/01/19 to 2026/01/19 - Version 1.1.6 - ITA
 * MultiSelectionDropdown: SelectedData attribute is meant to be optional. Updated accordingly.
+
+## 2026/01/20 to 2026/01/27 - Version 1.1.7 - ITA
+* Added a selReset property, that when set to true, the selected item(s) of the dropdown(s) can only be set via the parent component.
+* Combined the state variables that store default dropdown items and filtered dropdown items into one state variable.
+* Improved the robustness of search and selection of dropdown items.

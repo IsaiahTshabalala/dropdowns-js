@@ -17,9 +17,12 @@
  * 2026/01/17  2026/01/17    ITA    1.11      Renamed sortDirection to sortOrder, so as to maintain attribute naming consistency across the dropdowns.
  * 2026/01/19  2026/01/19    ITA    1.12      Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
  * 2026/01/19  2026/01/19    ITA    1.13      SelectedData attribute is meant to be optional. Updated accordingly.
+ * 2026/01/20  2026/02/01    ITA    1.14      Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected items when this value changes in the parent component.
+ *                                            Combined searchItems and list state variables into one: list.
+ *                                            Improved the logic for setting selected items.
  */
 import PropTypes from 'prop-types';
-import { useState, useMemo, useId } from 'react';
+import { useState, useMemo, useId, useEffect } from 'react';
 import { compare } from 'some-common-functions-js';
 import './dropdown.css';
 
@@ -28,6 +31,7 @@ import './dropdown.css';
  * @param {Array} data An array of primitive type items to display in the multiselection dropdown.
  * @param {String} [sortOrder='asc'] 'asc' or 'desc'. Default = 'asc'.
  * @param {Array} [selectedData=[]] pre-set array of selected items. Optional.
+ * @param {boolean} [selReset=false] When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
  * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
  * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
  * @param {null} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
@@ -39,6 +43,7 @@ export function MultiSelectionDropdown({
                     data,
                     sortOrder = 'asc',
                     selectedData = [],
+                    selReset = false,
                     maxNumSelections = null,
                     isDisabled = false,
                     onItemsSelected = null,
@@ -57,41 +62,42 @@ export function MultiSelectionDropdown({
     const [searchText, setSearchText] = useState('');
 
     // Use to set user selected items only!! To get selected items, use selectedItems.
-    const [currentSelection, setCurrentSelection] = useState([]);
+    const [currentSelection, setCurrentSelection] = useState(null);
 
     // Use to get selected items only!! To set selected items, use setCurrentSelection() function.
     const selectedItems = useMemo(()=> {
-        if (currentSelection.length > 0) {
-            return currentSelection
-                    .filter(currSelItem=> {
-                        // Eliminate selected items currently not in the dropdown data.
-                        return sortedData.findIndex(sortedItem=> (sortedItem === currSelItem)) >= 0;
-                    })
-                    .toSorted(compareFn);
-
+        // If selReset is true, then always return the default selected items (selectedData).
+        // If the user has not made any selection/deselection yet, return selectedData (default selection).
+        // Else return the items selected by the user (currentSelection).
+        let tempSelected = ((selReset === false) && currentSelection)? [...currentSelection] : [...selectedData];
+        // Eliminate selected items currently not in the dropdown data.
+        tempSelected = tempSelected
+                        .filter(currSelItem =>
+                            sortedData.some(sortedItem=> (sortedItem === currSelItem))
+                        );
+        // Enforce maximum number of selections if specified.
+        if (maxNumSelections && (tempSelected.length > maxNumSelections)) {
+            tempSelected = tempSelected.slice(0, maxNumSelections - 1);
         }
-        
-        return selectedData // Eliminate selected items currently not in the dropdown data.
-                .filter(item=> sortedData.findIndex(stableItem=> (stableItem === item)) >= 0)
-                .toSorted(compareFn);
-    }, [sortedData, selectedData, currentSelection]);
+        return tempSelected.toSorted(compareFn);
+    }, [selReset, sortedData, selectedData, currentSelection]);
+    
+    const [selKey, setSelKey] = useState(0); // used to trigger useEffect when a user has completed a selection.
 
-    // Items matching text typed by the user.
-    const searchItems = useMemo(()=> {
-        if (searchText.length === 0)
-            return [];
-
-        // Obtain items matching the typed text.
-        const searchTextUpperCase = searchText.toUpperCase();
-        return sortedData.filter(item=> item.toUpperCase().includes(searchTextUpperCase));
-    }, [searchText]);
+    useEffect(()=> {
+        if ((selKey >  0) && onItemsSelected && (currentSelection !== null)) {
+            onItemsSelected([...selectedItems]); // Call the callback function when user has made a selection.
+        }
+    }, [selKey]); // useEffect(()=> {
 
     // List of items to display in the dropdown.
     const list = useMemo(()=> {
-        if (searchText.length > 0)
-            return searchItems;
-
-        return sortedData;
+        if (searchText.length === 0)
+            return sortedData;
+        
+        return sortedData.filter(item=>
+            item.toString().toUpperCase().includes(searchText.toUpperCase())
+        );
     }, [searchText, sortedData]);
 
     const inputStyle = (()=> {
@@ -116,47 +122,48 @@ export function MultiSelectionDropdown({
         // As the user types, pop up the listbox with matching items. Close the listbox if there's no matching items.
         const text = e.target.value;
         setSearchText(text);
-        if (list.length > 0)
-            showList();
-        else
-            hideList();
+        showList();
     } // function handleSearch(e)
 
     function handleItemClick(clickedItem) {
-        let updatedItems = [ ...selectedItems ];
-        if (!isSelected(clickedItem)) {
-            // Get the allowed maximum number of selections.
-            // Allow no more item selection if maximum number of selections reached
-            if (maxNumSelections !== null && updatedItems.length >= maxNumSelections) {
-                return;
-            } // if (maxSelections !== null && selectedItems.length >= maxSelections)
-            
-            updatedItems.push(clickedItem);
-        } // if (!isSelected(clickedItem)) {
-        else { // Remove the item from the selected items.
-            updatedItems = updatedItems.filter(item=> {
-                return item !== clickedItem;
-            });
-        } // else
+        if (selReset) // Selected items set by the parent component. Do not allow user selection.
+            return;
 
         // Update the selected items in the component.
-        setCurrentSelection(updatedItems);
-    } // function handleItemClick(e) {
+        setCurrentSelection(prev=> {
+            let tempSelected = (prev? [ ...prev ] : [ ...selectedItems ]);
+            if (!(tempSelected.some(item => (item === clickedItem)))) {
+                // Allow item selection only if maxNumSelections has not been reached.
+                if ((maxNumSelections === null) || (tempSelected.length < maxNumSelections)) {           
+                    tempSelected.push(clickedItem);
+                }
+            } // if (!isSelected(clickedItem)) {
+            else { // Remove the item from the selected items.
+                tempSelected = tempSelected.filter(item=>
+                    (item !== clickedItem)
+                );
+            } // else  });
+            return tempSelected;
+        });
+    }// function handleItemClick(e) {
 
     function isSelected(item) { 
-    // Check whether an item is found in the list of selected items.
-        return selectedItems.findIndex(selectedItem=> {
-            return selectedItem === item;
-        }) >= 0;
+        // Check whether an item is found in the list of selected items.
+        return selectedItems.some(selectedItem=> (selectedItem === item));
     } // function isSelected(item) {
 
     function removeItem(itemToRemove) {
-        const updatedItems = selectedItems.filter(item=> {
-            return item !== itemToRemove;
-        });
-        setCurrentSelection(prev=> updatedItems);
-        if (onItemsSelected !== null)
-            onItemsSelected(updatedItems);
+        if (selReset) // Selected items set by the parent component. Do not allow user selection.
+            return;
+
+        setCurrentSelection(prev=> {
+            let tempSelected = (prev)? [...prev] : [...selectedItems];
+            return tempSelected.filter(selItem=> (
+                selItem !== itemToRemove
+            ));
+        }
+        );
+        setSelKey(prev=> prev + 1); // trigger useEffect to call the callback function.
     } // function removeItem(itemToRemove) {
 
     function toggleShowList() {
@@ -168,8 +175,7 @@ export function MultiSelectionDropdown({
 
     function hideList() {
         setShowItems(false);
-        if (onItemsSelected !== null)
-            onItemsSelected(selectedItems); 
+        setSelKey(prev=> prev + 1); // trigger useEffect to call the callback function.
     } // function hideList() {
 
     function showList() {
@@ -247,7 +253,7 @@ export function MultiSelectionDropdown({
                     }) // list.map((item, index)=> {
                 }
                 <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle} aria-label={`Click to collapse ${label} options`}
-                    title='Done' disabled={list.length === 0} onClick={e=> hideList()} type='button'>
+                    title='Done' onClick={e=> hideList()} type='button'>
                     Done
                 </button>
             </div>
@@ -260,6 +266,7 @@ MultiSelectionDropdown.propTypes = {
     data: PropTypes.array.isRequired,
     sortOrder: PropTypes.string,
     selectedData: PropTypes.array,
+    selReset: PropTypes.bool,
     maxNumSelections: PropTypes.number,
     isDisabled: PropTypes.bool,
     onItemsSelected: PropTypes.func,

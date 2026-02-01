@@ -16,18 +16,21 @@
  * 2025/12/29              ITA    1.05    Placeholder to show the name of the data, as provided by the label attribute.
  * 2026/01/11  2026/01/16  ITA    1.06    Improved the component so that it stores its own data instead of relying on the Collections context provider.
  * 2026/01/19  2026/01/19  ITA    1.07    Used useId() to ensure the uniqueness of ids of the concerned html elements even when the component is used multiple times in the same page.
+ * 2026/01/20  2026/02/01  ITA    1.08    Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected items when this value changes in the parent component.
+ *                                        Combined list and searchItems state variables into one: list.
+ *                                        Improved the logic for setting selected items.
  */
 import PropTypes from 'prop-types';
-import { useState, useEffect, useMemo, useId } from 'react';
+import { useState, useMemo, useId, useEffect } from 'react';
 import './dropdown.css';
 import { getPaths as getObjPaths, objCompare } from 'some-common-functions-js';
-
 
 /** Provide a multi-selection, searchable dropdown that takes an array of objects.
  * @param {String} label for screen readers.
  * @param {Array<Object>} data An array of objects to display in the multiselection dropdown.
  * @param {string} sortFields An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
  * @param {Array<Object>} [selectedData=[]] pre-set array of selected items. Optional.
+ * @param {boolean} [selReset=false] When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
  * @param {String} displayName the name of the field that will be used for displaying items in the dropdown.
  * @param {String} valueName  // the name of the field that will be used as the underlying unique value of each list item.
  * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
@@ -41,6 +44,7 @@ export function MultiSelectionDropdownObj({
                     data,
                     sortFields,
                     selectedData = [],
+                    selReset = false,
                     maxNumSelections = null,
                     displayName, // the name of the field that will be used for displaying the list items to the user.
                     valueName, // the name of the field that will be used as the underlying unique value of each list item.
@@ -52,58 +56,57 @@ export function MultiSelectionDropdownObj({
 {  
     const uid = useId(); // unique id.
     const [showItems, setShowItems] = useState(false); // true or false. Show or hide
-    const [paths, setPaths] = useState('');
+
+    // field paths of the objects in the data array.
+    const fieldPaths = useMemo(()=> (data.length > 0? getObjPaths(data[0]) : []), [data]);
 
     const [searchText, setSearchText] = useState('');
 
+    // Store dropdown input data as sorted.
     const sortedData = useMemo(()=> {
         return data.toSorted(compareFn);
     }, [data]);
 
+    const [selKey, setSelKey] = useState(0); // If greater than 0, an indicator that the user has completed a selection.
+
     // Set items selected by the user.
-    const [currentSelection, setCurrentSelection] = useState([]); // Use to set the user selection items only!! To get selected items, use selectedItems.
+    const [currentSelection, setCurrentSelection] = useState(null); // Use to set the user selection items only!! To get selected items, use selectedItems.
 
-    const selectedItems = useMemo(()=> { // Use for getting selected items only!! To set usr selected items, use the setCurrentSelection() function.
-        if (currentSelection.length > 0) {
-            return currentSelection
-                .filter(currSelItem=> {
-                    return sortedData.findIndex(sortedItem=> {
-                        const fieldPaths = getPaths();
-                        return objCompare(currSelItem, sortedItem, ...fieldPaths) === 0;
-                    }) >= 0;
-                }) // eliminate selected items not in the dropdown data.
-                .toSorted(compareFn);
+    const selectedItems = useMemo(()=> {        
+        // If selReset is true, then always return the default selected items (selectedData).
+        // If the user has not made any selection/deselection yet, return selectedData (default selection).
+        // Else return the items selected by the user (currentSelection).
+        let tempSelected = ((selReset === false) && currentSelection)? [...currentSelection] : [...selectedData];
+        tempSelected = tempSelected
+                        .filter(selItem=> {
+                            return sortedData.some(sortedItem=>
+                                (objCompare(selItem, sortedItem, ...fieldPaths) === 0)
+                            );
+                        }); // eliminate selected items not in the dropdown data.
+        // Enforce maximum number of selections if specified.
+        if (maxNumSelections && (tempSelected.length > maxNumSelections)) {
+            tempSelected = tempSelected.slice(0, maxNumSelections - 1);
         }
-
-        return selectedData
-                .filter(selItem=> {
-                    return sortedData.findIndex(sortedItem=> {
-                        const fieldPaths = getPaths();
-                        return objCompare(selItem, sortedItem, ...fieldPaths) === 0;
-                    }) >= 0;
-                }) // eliminate selected items not in the dropdown data.
-                .toSorted(compareFn);
+        return tempSelected.toSorted(compareFn);
     }, [sortedData, selectedData, currentSelection]);
 
+    useEffect(()=> {
+        if ((selKey >  0) && currentSelection && onItemsSelected) {
+            onItemsSelected([...selectedItems]); // Call the callback function when user has made a selection.
+        }
+    }, [selKey]);
+
     // List of items matching text typed by the user.
-    const searchItems = useMemo(()=> {
-        if (searchText.length === 0)
-            return [];
-        
+    const list = useMemo(()=> {
         // Obtain items matching the typed text.
         const searchTextUpperCase = searchText.toUpperCase();
+        if (searchTextUpperCase.length === 0)
+            return sortedData;
+
         return sortedData.filter(item=> {
             const itemValue = item[displayName].toUpperCase();
             return itemValue.includes(searchTextUpperCase);
         });
-    }, [searchText]);
-
-    // List of items to display in the dropdown.
-    const list = useMemo(()=> {
-        if (searchText.length > 0)
-            return searchItems;
-
-        return sortedData;
     }, [searchText, sortedData]);
  
     const inputStyle = (()=> {
@@ -117,26 +120,8 @@ export function MultiSelectionDropdownObj({
         return aStyle;
     })();
     const borderColor = dropdownStyle?.borderColor;
-    
-    useEffect(()=> {
-        if (!displayName) // Make sure that displayName was provided.
-            throw new Error('displayName must be provided');
-        if (!valueName) // Make sure that the valueName was provided.
-            throw new Error('valueName must be provided');    
-    }, []); // useEffect(()=> {    
 
-    /**Calculate the field paths of the objects displayed in the dropdown. */
-    function getPaths() {
-        let tempPaths = paths;
-        if (!tempPaths) {
-            if (data.length > 0)
-                tempPaths = getObjPaths(data[0]);
-
-            setPaths(tempPaths);
-        }
-        return tempPaths;
-    }
-
+    /**Comparison function for sorting items. */
     function compareFn(item1, item2) {
         return objCompare(item1, item2, ...sortFields);
     }
@@ -145,51 +130,51 @@ export function MultiSelectionDropdownObj({
     function handleSearch(e) {
         // As the user types, pop up the listbox with matching items. Close the listbox if there's no matching items.
         setSearchText(e.target.value);
-        if (searchItems.length > 0)
-            showList();
-        else
-            hideList();
+        showList();
     } // function handleSearch(e)
 
     function handleItemClick(clickedItem) {
-        let tempSelected = [...selectedItems];
+        if (selReset) // Selected items set by the parent component. Do not allow user selection.
+            return;
         
-        if (!isSelected(clickedItem)) { // Not amongst selected items
-            // Get the allowed maximum number of selections.
-            // Allow no more item selection if maximum number of selections reached
-            if (maxNumSelections !== null && selectedItems.length >= maxNumSelections) {
-                return;
-            } // if (maxNumSelections !== null && selectedItems.length >= maxNumSelections)         
-            
-            tempSelected.push(clickedItem);
-        } // if (!isSelected(clickedItem))
-        else {  // if (selected(clickedItem)) // Amongst selected items.
-            // Remove the item from the selected items.
-            tempSelected = tempSelected.filter(item=> {
-                const fieldPaths = getPaths();
-                return objCompare(item, clickedItem, ...fieldPaths) !== 0;
-            });    
-        } // else
-        setCurrentSelection(tempSelected);
+        setCurrentSelection(prev=>{
+            let tempSelected = (prev)? [...prev] : [...selectedItems];
+            if (!(tempSelected.some(selItem=> // clicked item not found in the list of selected items.
+                (objCompare(selItem, clickedItem, ...fieldPaths) === 0)
+            ))) {
+                // Allow item selection only if maxNumSelections has not been reached.
+                if (maxNumSelections === null || tempSelected.length < maxNumSelections)
+                    tempSelected.push(clickedItem);
+            }
+            else {  // if (selected(clickedItem)) // Amongst selected items.
+                // Remove the item from the selected items.
+                tempSelected = tempSelected.filter(item=> (
+                    objCompare(item, clickedItem, ...fieldPaths) !== 0
+                ));    
+            } // else
+            return tempSelected;
+        });
     } // function handleItemClick(clickedItem) {
-
+    
     function isSelected(item) {
         // Check whether an item is found in the list of selected items.
-        const fieldPaths = getPaths();
-        return selectedItems.findIndex(selectedItem=> {
+        return selectedItems.some(selectedItem=> {
             return (objCompare(selectedItem, item, ...fieldPaths) === 0);
-        }) >= 0;
+        });
     } // function isSelected(item) {
 
     function removeItem(itemToRemove) {
-        const paths = getPaths(selectedItems);
-        const updatedItems = selectedItems.filter(item=> {
-            return objCompare(item, itemToRemove, ...paths) !== 0;
-        }); // remove the item marked for removal from selected items.
-
-        setCurrentSelection(updatedItems);
-        if (onItemsSelected !== null)
-            onItemsSelected(updatedItems);
+        if (selReset) // Selected items set by the parent component. Do not allow user selection.
+            return;
+        
+        setCurrentSelection(prev=> {
+            let tempSelected = (prev)? [...prev] : [...selectedItems]; 
+            tempSelected = tempSelected.filter(selItem=> (
+                objCompare(selItem, itemToRemove, ...fieldPaths) !== 0
+            ));
+            return tempSelected;
+        });
+        setSelKey(prev=> prev + 1); // trigger useEffect to call the callback function.
     } // function removeItem(item) {
 
     function toggleShowList() {
@@ -202,9 +187,7 @@ export function MultiSelectionDropdownObj({
 
     function hideList() {
         setShowItems(false);
-
-        if (onItemsSelected !== null)
-            onItemsSelected(selectedItems);
+        setSelKey(prev=> prev + 1); // trigger useEffect to call the callback function.
     } // function hideList() {
 
     function showList() {
@@ -284,7 +267,7 @@ export function MultiSelectionDropdownObj({
                 }
 
                 <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle}
-                    title='Done' disabled={list.length === 0} aria-label={`Close ${label} options`} onClick={e=> hideList()} type='button'>
+                    title='Done' aria-label={`Close ${label} options`} onClick={e=> hideList()} type='button'>
                     Done
                 </button>
             </div>
@@ -297,6 +280,7 @@ MultiSelectionDropdownObj.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     sortFields: PropTypes.arrayOf(PropTypes.string).isRequired,
     selectedData: PropTypes.arrayOf(PropTypes.object),
+    selReset: PropTypes.bool,
     maxNumSelections: PropTypes.number,
     displayName: PropTypes.string.isRequired,               
     valueName: PropTypes.string.isRequired,

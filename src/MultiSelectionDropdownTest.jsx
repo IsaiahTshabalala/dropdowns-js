@@ -8,6 +8,8 @@
  * =========================================================
  * 2025/12/19              1.0.0      ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1      ITA     Working with the MultiSelectionDropdown no longer requires a Collections context provider.
+ * 2026/01/20  2026/01/27  1.0.2      ITA     Added a test for selReset prop.
+  * =========================================================
  */
 
  /** VERY IMPORTANT!!!
@@ -110,13 +112,13 @@ export default function MultiSelectionDropdownTest() {
             else if (item === "Cars")
                 topicUpdate = [ ...topicUpdate, ...carMakes ];
         });
-        setTopics(prev=> topicUpdate);
-        setSelectedTopics(prev=> [topicUpdate[0], topicUpdate[1]]);
+        setTopics(topicUpdate);
+        setSelectedTopics([topicUpdate[0], topicUpdate[1]]);
     }
 
     /**Respond topic selection */
     function topicSelected(selTopics) {
-        setSelectedTopics(prev=> selTopics);
+        setSelectedTopics(selTopics);
         setOutput(prev=> (<p>{`${selectedInterests.join(", ").trim()} => `}<br/>{selTopics.join(", ")}</p>));
     }
 
@@ -141,8 +143,9 @@ export default function MultiSelectionDropdownTest() {
                 <MultiSelectionDropdown
                     label='Topics'
                     data={topics}
-                    maxNumSelections={5}
+                    maxNumSelections={6}
                     selectedData={selectedTopics}
+                    selReset={false}
                     onItemsSelected={topicSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               
