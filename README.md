@@ -46,7 +46,7 @@ export default function MyComponent {
 
 `valueName` - for dropdowns using object type array input. The name of the field that will be used as the underlying unique value of each dropdown item. e.g. 'code', 'id'.
 
-`selectedData` - for multi-selection dropdowns. An array of pre-set selection of options. This is an array of multi-selection dropdowns. Optional.
+`selectedData` - for multi-selection dropdowns. An array of pre-set selection of options. Optional.
 
 `selected` - for single selection dropdowns. A pre-set selected option.
 
