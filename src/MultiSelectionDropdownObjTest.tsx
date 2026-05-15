@@ -9,6 +9,7 @@
  * 2025/12/19              1.0.0     ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1     ITA     Working with MultiSelectionObj dropdown no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
+ * 2026/05/11  2026/05/15  2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
  * ==========================================================
 */
 
@@ -35,8 +36,20 @@ import { MultiSelectionDropdownObj } from 'dropdowns-js';
 
 import { useState } from 'react';
 
+// Models
+interface DrivingCode {  
+  code: string;
+  description: string;
+  minAge: Number;
+};
+interface Driver {
+  fullName: string;
+  licenceCode: string;
+  id: string;
+};
+
 /*======= Collections/lists to be used to illustrate how to use MultiSelectionDropdownObj ============*/
-const drivingCodesZA = [
+const drivingCodesZA: DrivingCode[] = [
   { code: "A1", description: "Motorcycle ≤ 125cc", minAge: 18 },
   { code: "A", description: "Motorcycle > 125cc", minAge: 16 },
   { code: "B", description: "Light motor vehicle ≤ 3,500kg", minAge: 18 },
@@ -47,7 +60,7 @@ const drivingCodesZA = [
   { code: "EC", description: "Heavy goods vehicle + heavy trailer", minAge: 18 }
 ];
 
-const drivers = [
+const drivers: Driver[] = [
   {
     fullName: "Thabo Mokoena",
     licenceCode: "B",
@@ -153,12 +166,12 @@ const drivers = [
 
 /*=======================================================================================*/
 export default function MultiSelectionDropdownObjTest() {
-    const [driversPerLicenceCode, setDriversPerLicenceCode] = useState([]);
-    const [selectedDrivers, setSelectedDrivers] = useState(useState([]));
-    const [output, setOutput] = useState();
+    const [driversPerLicenceCode, setDriversPerLicenceCode] = useState<Driver[]>([]);
+    const [selectedDrivers, setSelectedDrivers] = useState<Driver[]>([]);
+    const [output, setOutput] = useState<string>('');
 
     /**Respond when the user has chosen driving codes */
-    function drivingCodesSelected(drivCodes) {
+    function drivingCodesSelected(drivCodes: DrivingCode[]) {
         // Create a string array of driving codes.
         const strSelectedCodes = drivCodes.map((drivCode)=> drivCode.code);
         const updateData = drivers.filter(driver=> {
@@ -169,7 +182,7 @@ export default function MultiSelectionDropdownObjTest() {
         setSelectedDrivers(updateData);
     }
 
-    function driversSelected(selDrivers) {
+    function driversSelected(selDrivers: Driver[]) {
         setSelectedDrivers(selDrivers);
         setOutput(selDrivers.map(selDriv=> `${selDriv.fullName} (${selDriv.licenceCode})`).join(', ')); // List of selected drivers' names.
     }
@@ -181,7 +194,6 @@ export default function MultiSelectionDropdownObjTest() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes-dropdown' style={{width: '100px'}}>Lic. Codes</label>
                 <MultiSelectionDropdownObj
-                    id= 'driving-codes-dropdown'
                     label='Driving Licence Codes'
                     data={drivingCodesZA}
                     sortFields={['description']}
@@ -197,10 +209,9 @@ export default function MultiSelectionDropdownObjTest() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='drivers-dropdown' style={{width: '100px'}}>Drivers</label>
                 <MultiSelectionDropdownObj
-                    id= 'drivers-dropdown'
                     label='Drivers'
                     data={driversPerLicenceCode}
-                    sortFields={['lastName', 'firstName',]}
+                    sortFields={['fullName']}
                     valueName='id'
                     displayName='fullName'
                     maxNumSelections={5}

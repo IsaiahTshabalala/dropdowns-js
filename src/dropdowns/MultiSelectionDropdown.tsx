@@ -20,37 +20,49 @@
  * 2026/01/20  2026/02/01    ITA    1.14      Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected items when this value changes in the parent component.
  *                                            Combined searchItems and list state variables into one: list.
  *                                            Improved the logic for setting selected items.
+ * 2026/05/11  2026/05/15    ITA    2.0.0     Changed the file extension to .tsx and migrated to Typescript.
  */
-import PropTypes from 'prop-types';
-import { useState, useMemo, useId, useEffect } from 'react';
+import { useState, useMemo, useId, useEffect, JSX } from 'react';
+import { DropdownStyle, ButtonStyle } from './dropdowns.models.js';
 import { compare } from 'some-common-functions-js';
 import './dropdown.css';
 
-/** Provide a multi-selection, searchable dropdown that takes an array of primitve types.
- * @param {String} label for screen readers.
- * @param {Array} data An array of primitive type items to display in the multiselection dropdown.
- * @param {String} [sortOrder='asc'] 'asc' or 'desc'. Default = 'asc'.
- * @param {Array} [selectedData=[]] pre-set array of selected items. Optional.
- * @param {boolean} [selReset=false] When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
- * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
- * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
- * @param {null} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
- * @param {Object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
- * @param {Object} buttonStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional) 
+/** Provide a multi-selection, searchable dropdown that takes an array of primitve types.*/
+ interface MultiselectionDropdownPropTypes<T> {
+    label: string, // For screen readers. Describes the data that is populating the dropdown.
+    data: NonNullable<T>[], // An array of primitive type items to display in the multiselection dropdown.
+    sortOrder?: 'asc'|'desc',
+    selectedData?: NonNullable<T>[], // Pre-set array of selected items. Optional.
+    selReset?: boolean, // When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
+    maxNumSelections?: number, // Allowed maximum number of selections. Optional.
+    isDisabled?: boolean, // Set to true if you want to disable component.
+    onItemsSelected?: (selItems: T[])=> void, // Callback function to call when selection is complete. Optional.
+    dropdownStyle: DropdownStyle, // Styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
+    buttonStyle: ButtonStyle
+ };
+ /* @param {Object} buttonStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional) 
 */
-export function MultiSelectionDropdown({
+export function MultiSelectionDropdown<T extends number | string | bigint | boolean>({
                     label, // label with which to describe the dropdown.
                     data,
                     sortOrder = 'asc',
                     selectedData = [],
                     selReset = false,
-                    maxNumSelections = null,
+                    maxNumSelections,
                     isDisabled = false,
-                    onItemsSelected = null,
+                    onItemsSelected,
                     dropdownStyle, // Styling object with fields {color, backgroundColor, borderColor (optional), fontSize}.
                     buttonStyle // Styling for the DONE button
-                })
+                }: MultiselectionDropdownPropTypes<T>) : JSX.Element
 {
+    // Enforce that dropdown items be non-null and primitive type: string|number|bigint|boolean.    
+    const primitiveTypes = ["number", "string", "boolean", "bigint"];
+    if ((data.length > 0) && (data.some(dataItem=> {
+        return ((dataItem === null) && (!primitiveTypes.includes(typeof dataItem)));
+    }))) { // Ensure that the data array contains only primitive types.
+        throw new Error(`Dropdown items must be one of ${primitiveTypes}`);
+    }
+
     const uid = useId(); // unique id.
     const [showItems, setShowItems] = useState(false); /* true or false: show or hide dropdown items */
 
@@ -62,14 +74,18 @@ export function MultiSelectionDropdown({
     const [searchText, setSearchText] = useState('');
 
     // Use to set user selected items only!! To get selected items, use selectedItems.
-    const [currentSelection, setCurrentSelection] = useState(null);
+    const [currentSelection, setCurrentSelection] = useState<T[]>([]);
 
     // Use to get selected items only!! To set selected items, use setCurrentSelection() function.
     const selectedItems = useMemo(()=> {
         // If selReset is true, then always return the default selected items (selectedData).
         // If the user has not made any selection/deselection yet, return selectedData (default selection).
         // Else return the items selected by the user (currentSelection).
-        let tempSelected = ((selReset === false) && currentSelection)? [...currentSelection] : [...selectedData];
+        let tempSelected: T[] = [];
+        if ((selReset === false) && currentSelection)
+            tempSelected = [...currentSelection];
+        else
+            tempSelected = [...selectedData];
         // Eliminate selected items currently not in the dropdown data.
         tempSelected = tempSelected
                         .filter(currSelItem =>
@@ -96,36 +112,28 @@ export function MultiSelectionDropdown({
             return sortedData;
         
         return sortedData.filter(item=>
-            item.toString().toUpperCase().includes(searchText.toUpperCase())
+            (item as unknown as string).toUpperCase().includes(searchText.toUpperCase())
         );
     }, [searchText, sortedData]);
 
-    const inputStyle = (()=> {
-        const aStyle = { 
-            backgroundColor: dropdownStyle?.backgroundColor,
-            color: dropdownStyle?.color
-        }
-        if (dropdownStyle?.fontSize) {
-            aStyle.fontSize = dropdownStyle?.fontSize;
-        }
-        return aStyle;
-    })();
+    // Styling for the input/search element of the dropdown.
+    const inputStyle = dropdownStyle;
     const borderColor = dropdownStyle?.borderColor;
 
     /**Comparison function used in the sorting of dropdown elements. */
-    function compareFn(item1, item2) {
+    function compareFn(item1: T, item2: T) {
         return compare(item1, item2, sortOrder);
     }
     
     /** Respond the user typing text to search for items */
-    function handleSearch(e) {
+    function handleSearch(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
         // As the user types, pop up the listbox with matching items. Close the listbox if there's no matching items.
         const text = e.target.value;
         setSearchText(text);
         showList();
     } // function handleSearch(e)
 
-    function handleItemClick(clickedItem) {
+    function handleItemClick(clickedItem: T) {
         if (selReset) // Selected items set by the parent component. Do not allow user selection.
             return;
 
@@ -134,7 +142,7 @@ export function MultiSelectionDropdown({
             let tempSelected = (prev? [ ...prev ] : [ ...selectedItems ]);
             if (!(tempSelected.some(item => (item === clickedItem)))) {
                 // Allow item selection only if maxNumSelections has not been reached.
-                if ((maxNumSelections === null) || (tempSelected.length < maxNumSelections)) {           
+                if ((maxNumSelections === null) || (maxNumSelections && (tempSelected.length < maxNumSelections))) {           
                     tempSelected.push(clickedItem);
                 }
             } // if (!isSelected(clickedItem)) {
@@ -147,12 +155,12 @@ export function MultiSelectionDropdown({
         });
     }// function handleItemClick(e) {
 
-    function isSelected(item) { 
+    function isSelected(item: T) {
         // Check whether an item is found in the list of selected items.
         return selectedItems.some(selectedItem=> (selectedItem === item));
     } // function isSelected(item) {
 
-    function removeItem(itemToRemove) {
+    function removeItem(itemToRemove: T) {
         if (selReset) // Selected items set by the parent component. Do not allow user selection.
             return;
 
@@ -207,14 +215,14 @@ export function MultiSelectionDropdown({
                         aria-controls={ids.multiSelectionDropdown}
                         aria-expanded={showItems}
                         aria-haspopup='listbox'
-                        onChange={e=> handleSearch(e)}
+                        onChange={handleSearch}
                         placeholder={`Type to Search for ${label}`} value={searchText}
                     />
                 </div>
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded'
                      aria-expanded={showItems} aria-controls='multiSelectionDropdown' aria-label={`${label} options`}
-                     onClick={e=> toggleShowList(e)}>
+                     onClick={()=> toggleShowList()}>
                     <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
@@ -228,7 +236,7 @@ export function MultiSelectionDropdown({
                                 <span key={`${item}`} className='dropdown-js-padding dropdown-js-rounded' 
                                       aria-label={`${item}`}
                                       style={{...inputStyle, margin: '3.5px', marginRight: '0px'}}>
-                                    {item} <span style={{cursor: 'pointer'}} aria-label={`Remove ${item}`} onClick={e=> removeItem(item)}>{"\u00D7"}</span>
+                                    {item as unknown as string} <span style={{cursor: 'pointer'}} aria-label={`Remove ${item}`} onClick={()=> removeItem(item)}>{"\u00D7"}</span>
                                 </span>
                             );
                         })
@@ -238,49 +246,25 @@ export function MultiSelectionDropdown({
 
             {/* Dropdown items */}
             <div className={`dropdown-js-padding dropdown-js-menu dropdown-js-rounded ${(!showItems) && 'dropdown-js-hide'}`}
-                 style={inputStyle} id={ids.multiSelectionDropdown} name='multiSelectionDropdown'
+                 style={inputStyle} id={ids.multiSelectionDropdown}
                  role='listbox' aria-multiselectable={true} aria-expanded={showItems} >
                 {list.map((item, index)=> {
                         return (
                             <div key={`${index}#${item}`} >
                                 <input type='checkbox' name={`${item}Checkbox`} 
-                                       role='option' aria-label={item} aria-checked={isSelected(item)}
-                                       style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={e=> handleItemClick(item)} value={item} />
-                                <label style={{marginLeft: '5px'}} htmlFor={`${item}`}>{item}</label>
+                                       role='option' aria-label={item as unknown as string} aria-checked={isSelected(item)}
+                                       style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={()=> handleItemClick(item)} value={item as unknown as string} />
+                                <label style={{marginLeft: '5px'}} htmlFor={`${item}`}>{item as unknown as string}</label>
                                 <hr style={{ backgroundColor: inputStyle.color, border: 'none', height: '0.5px'}}/>
                             </div>
                         );
                     }) // list.map((item, index)=> {
                 }
                 <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle} aria-label={`Click to collapse ${label} options`}
-                    title='Done' onClick={e=> hideList()} type='button'>
+                    title='Done' onClick={()=> hideList()} type='button'>
                     Done
                 </button>
             </div>
         </div>
     );
 }
-
-MultiSelectionDropdown.propTypes = {
-    label: PropTypes.string.isRequired,
-    data: PropTypes.array.isRequired,
-    sortOrder: PropTypes.string,
-    selectedData: PropTypes.array,
-    selReset: PropTypes.bool,
-    maxNumSelections: PropTypes.number,
-    isDisabled: PropTypes.bool,
-    onItemsSelected: PropTypes.func,
-    dropdownStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    }),
-    buttonStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    })
-};
-

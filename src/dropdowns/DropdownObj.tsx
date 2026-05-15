@@ -1,5 +1,5 @@
 /**
- * File: ./src/dropdowns/DropdownObj.js
+ * File: ./src/dropdowns/DropdownObj.tsx
  * --------------------------------------------------------------------------------
  * Description: 
  * Provide a single selection, searchable dropdown that takes an array of objects.
@@ -23,39 +23,60 @@
  * 2026/01/20   2026/02/01   ITA    1.11    Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected item when this value changes in the parent component.
  *                                          Combined searchItems and list state variables into one: list.
  *                                          Improved the logic for setting selected items.
+ * 2026/05/11   2026/05/15   ITA    2.0.0   Changed the file extension to .tsx and migrated to Typescript.
 */
-import PropTypes from 'prop-types';
-import { useId, useMemo, useState, useEffect } from 'react';
+import { useId, useMemo, useState, useEffect, JSX } from 'react';
 import './dropdown.css';
-import { getPaths as getObjPaths, objCompare} from 'some-common-functions-js'
+import { get, getPaths as getObjPaths, objCompare, isPlainObject } from 'some-common-functions-js'
+import { DropdownStyle } from './dropdowns.models.js';
 
-/** Provide a multi-selection, searchable dropdown that takes an array of objects.
- * @param {String} label for screen readers.
- * @param {Array<Object>} data An array of objects to display in the multiselection dropdown.
- * @param {string} sortFields An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
- * @param {Array<Object>} [selected=null] pre-set selected item. Optional.
- * @param {boolean} [selReset=true] When set to true, the dropdown resets to the default selected item when this is updated in the parent component.
- * @param {String} displayName the name of the field that will be used for displaying items in the dropdown.
- * @param {String} valueName  the name of the field that will be used as the underlying unique value of each list item.
- * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
- * @param {null} [onItemSelected=null] Callback function to call when selection is complete. Optional.
- * @param {Object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
-*/
-export function DropdownObj({
+interface DropdownObjPropTypes<T extends object> {
+    label: string;  // label for screen readers.
+    data: NonNullable<T>[]; // An array of objects to display in the multiselection dropdown.    
+    sortFields: string[] // An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
+    selected?: T | null // pre-set selected item. Optional.
+    selReset?: boolean; // When set to true, the dropdown resets to the default selected item when this is updated in the parent component.
+    displayName: string; // The name of the field that will be used for displaying items in the dropdown.
+    valueName: string; // The name of the field that will be used as the underlying unique value of each list item.
+    isDisabled?: boolean; // Optional. Set to true if you want to disable component.
+    onItemSelected?: (selItem: T)=> void; // Callback function to call when selection is complete. Optional.
+    dropdownStyle: DropdownStyle; // Styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
+};
+
+/** Provide a multi-selection, searchable dropdown that takes an array of objects.**/
+export function DropdownObj<T extends object>({
                     label, // label with which to describe the dropdown.
                     data,
                     sortFields,
                     selected = null,
-                    selReset=false,
+                    selReset = false,
                     displayName, // the name of the field that will be used for displaying the list items to the user.
                     valueName, // the name of the field that will be used as the underlying unique value of each list item.
                     isDisabled = false,
-                    onItemSelected = null,
+                    onItemSelected,
                     dropdownStyle
-                })
+                }: DropdownObjPropTypes<T>) : JSX.Element
 {
+    useState<boolean>(
+        ()=> {
+            data.forEach((item: T)=> {
+                if (!isPlainObject(item)) { // Check against existence of non-plain objects.
+                    throw new Error("[Dropdowns-js] Non plain object found");
+                }
+                const keys = Object.keys(item);
+                if (!keys.includes(displayName)) { // Check against use of a non-existent field as displayName.
+                    throw new Error(`[Dropdowns-js] displayName field ${displayName} not found`);
+                }
+                if (!keys.includes(valueName)) { // Check against use of a non-existent field as valueName.
+                    throw new Error(`[Dropdowns-js] valueName field ${valueName} not found`);
+                }
+            });
+            return true;
+        }
+    );
+    
     const uid = useId();
-    const [showItems, setShowItems] = useState(null); // true or false. Show or hide dropdown items.
+    const [showItems, setShowItems] = useState(false); // true or false. Show or hide dropdown items.
     const [searchText, setSearchText] = useState('');
 
     const fieldPaths = useMemo(()=> (data.length > 0? getObjPaths(data[0]) : []), [data]);
@@ -72,31 +93,31 @@ export function DropdownObj({
         // Obtain items matching the typed text.
         const searchTextUpperCase = searchText.toUpperCase();
         return sortedData.filter(item=> {
-            const itemValue = item[displayName].toUpperCase();
-            return itemValue.toUpperCase().includes(searchTextUpperCase);
+            const itemValue = (item[displayName as keyof T] as unknown as string).toUpperCase();
+            return itemValue.includes(searchTextUpperCase);
         });
     }, [searchText, sortedData]);
 
     const [selKey, setSelKey] = useState(0); // Used to trigger a useEffect when the user has completed a selection.
 
     useEffect(()=> {
-        if ((selKey > 0) && (currSelectedItem !== null) && onItemSelected) {
-            onItemSelected(selectedItem);
+        if ((selKey > 0) && (currSelectedItem) && onItemSelected) {
+            onItemSelected(selectedItem!);
         }
     }, [selKey]);
 
     const [displayValue, setDisplayValue] = useState(''); // Text to display in the textbox, could be the selected item or search text typed by the user.
 
      // Use to set the user selected item only!! To get the selected item, use selectedItem
-    const [currSelectedItem, setCurrSelectedItem] = useState(null);
+    const [currSelectedItem, setCurrSelectedItem] = useState<T | null>(null);
 
     // Use to get the selected item only!! To set the selected item, use setCurrSelectedItem() function.
-    const selectedItem = useMemo(()=> {
+    const selectedItem = useMemo<T | null>(()=> {
         // If selReset is true, then always return the selected (default selection).
         // If the user has not made any selection yet, return selected (default selection).
         // Else return the item selected by the user (currSelectedItem).
-        let selItem = null;
-        let idx;
+        let selItem: T | null = null;
+        let idx = -1;
         if ((currSelectedItem) && (selReset === false)) {
             idx = data.findIndex(item=> 
                 (objCompare(item, currSelectedItem, ...fieldPaths) === 0)
@@ -111,15 +132,16 @@ export function DropdownObj({
             if (idx >= 0)
                 selItem = data[idx];
         }
-        if (selItem)
-            setDisplayValue(selItem[displayName]);
+        if (idx >= 0)
+            setDisplayValue(selItem![displayName as keyof T] as string);
         else
             setDisplayValue('');
+        
         return selItem;
     }, [selected, currSelectedItem]);
 
     const inputStyle = (()=> {
-        const aStyle = { 
+        const aStyle: DropdownStyle = {
         backgroundColor: dropdownStyle?.backgroundColor,
         color: dropdownStyle?.color
         }
@@ -131,28 +153,28 @@ export function DropdownObj({
     const borderColor = dropdownStyle?.borderColor;
 
     /**Respond to the user typing text to search for dropdown items */
-    async function handleSearch(e) {
-        // As the user types, 
+    async function handleSearch(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
+        // As the user types.
         setSearchText(e.target.value);
-        setDisplayValue(e.target.value);        
+        setDisplayValue(e.target.value);
         showList();
     } // function handleSearch(e)
 
     /**Comparison function used in the sorting of dropdown elements. */
-    function compareFn(item1, item2) {
+    function compareFn(item1: T, item2: T) {
         return objCompare(item1, item2, ...sortFields);
     }
 
     /**Respond to selection of an item */
-    function handleItemClick(clickedItem) {
+    function handleItemClick(clickedItem: T) {
         if (selReset) // Selected item set by the parent component. Do not allow user selection.
             return;
-            
+
         setCurrSelectedItem({...clickedItem});
         setSearchText('');
         hideList();
         setSelKey(prev=> prev + 1);
-    } // function handleItemClick(e) {
+    } // function handleItemClick(clickedItem: T) {
 
     function toggleShowList() {
         if (!showItems)
@@ -190,28 +212,29 @@ export function DropdownObj({
                     aria-autocomplete='list'
                     aria-controls={ids.dropdownObj}
                     aria-expanded={showItems}
-                    aria-placeholder={`Type to Search for ${label}`} aria-required={true} onChange={e=> handleSearch(e)}
+                    aria-placeholder={`Type to Search for ${label}`} aria-required={true}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => handleSearch(e)}
                     disabled={isDisabled}
                     placeholder={`Type to Search for ${label}`} value={displayValue}
                 />
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded'
-                    aria-label={`${label} options`} aria-expanded={showItems} onClick={e=> toggleShowList(e)}>
+                    aria-label={`${label} options`} aria-expanded={showItems} onClick={()=> toggleShowList()}>
                     <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
             
             <div className={`dropdown-js-padding dropdown-js-menu ${(!showItems) && 'dropdown-js-hide'}`}
-                 id={ids.dropdownObj} name='dropDownObj' 
+                 id={ids.dropdownObj}
                  role='listbox' aria-expanded={showItems} style={{...inputStyle, marginTop: '3.5px'}} >
                 {list.map((item, index)=> {
                         return (
-                            <div name={item[displayName]} key={`${item[valueName]}${index}`}
+                            <div key={`${get(item, valueName) as string}${index}`}
                                 role='option'
-                                aria-label={item[displayName]} 
+                                aria-label={get(item, displayName) as string} 
                                 style={{cursor: 'pointer'}}
-                                onClick={e=> handleItemClick(item)}>
-                                {item[displayName]}
+                                onClick={() => handleItemClick(item)}>
+                                {get(item, displayName) as string}
                                 {(index < list.length - 1) &&
                                     <hr style={{borderColor: inputStyle.color}}/>
                                 }
@@ -223,21 +246,3 @@ export function DropdownObj({
         </div>
     );
 }
-
-DropdownObj.propTypes = {
-    label: PropTypes.string.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    sortFields: PropTypes.arrayOf(PropTypes.string).isRequired,
-    selected: PropTypes.object,
-    tick: PropTypes.number,
-    displayName: PropTypes.string.isRequired,               
-    valueName: PropTypes.string.isRequired,
-    isDisabled: PropTypes.bool,
-    onItemSelected: PropTypes.func,
-    dropdownStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    })
-};

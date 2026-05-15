@@ -56,3 +56,6 @@ Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelect
 * Added a selReset property, that when set to true, the selected item(s) of the dropdown(s) can only be set via the parent component.
 * Combined the state variables that store default dropdown items and filtered dropdown items into one state variable.
 * Improved the robustness of search and selection of dropdown items.
+
+## 2026/05/11 to 2026/05/15 - Version 2.0.0 - ITA
+* Migrated to Typescript.

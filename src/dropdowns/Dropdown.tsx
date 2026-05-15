@@ -1,9 +1,9 @@
 /**
- * File: ./src/dropdowns/Dropdown.js
- * --------------------------------------------------------------------------------
+ * File: ./src/dropdowns/Dropdown.tsx
+ * ------------------------------------------------------------------------------------------------------
  * Description: 
  * Provide a single selection searchable dropdown that takes an array of primitive types.
- * * --------------------------------------------------------------------------------
+ * * ----------------------------------------------------------------------------------------------------
  * Start Date  End Date      Dev     Version   Description
  * 2023/12/19                ITA     1.00      Genesis.
  * 2024/06/18                ITA     1.01      Add the version number.
@@ -23,34 +23,46 @@
  * 2026/01/20  2026/02/01    ITA     1.13      Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected item when this value changes in the parent component.
  *                                             Combined searchItems and list state variables into a single variable: list.
  *                                             Improved the logic for setting selected items.
+ * 2026/05/11  2026/05/15    ITA     2.0.0     Changed the file extension to .tsx and migrated to Typescript.
  */
-import PropTypes from 'prop-types';
-import { useState, useMemo, useId, useEffect } from 'react';
+
+import { useState, useMemo, useId, useEffect, JSX } from 'react';
 import './dropdown.css';
+import { DropdownStyle, ButtonStyle } from './dropdowns.models.js';
 import { compare } from 'some-common-functions-js';
 
+interface DropdownPropTypes<T> {
+    label: string;
+    data: NonNullable<T>[];
+    sortOrder?: 'asc' | 'desc';
+    onItemSelected?: (selectedItem: T) => void;
+    selected?: T | null;
+    selReset?: boolean;
+    isDisabled?: boolean;
+    dropdownStyle: DropdownStyle;
+    buttonStyle?: ButtonStyle;
+};
+
 /**Single selection dropdown component.
- * @param {string} label name of the data items.
- * @param {array} data  primitve type array data items.
- * @param {string} [sortOrder='asc'] sort order. Default 'asc'.
- * @param {function} [onItemSelected=null] callback function passed by the parent component. Optional.
- * @param {*} [selected=null] optional default selected item. Must be one of data array elements. Optional.
- * @param {boolean} [selReset=true] When set to true, the dropdown resets to the default selected item when this is updated in the parent component.
- * @param {boolean} [isDisabled=false] optional. Set to true if the component must be disabled.
- * @param {Function} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
- * @param {boolean} [selReset=false] whether to update to default selected item if it is updated from the parent component.
- * @param {object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
  */
-export function Dropdown({
+export function Dropdown<T extends number | string | bigint | boolean>({
                     label, // label with which to describe the dropdown.
                     data, // Primitive type array.
                     sortOrder = 'asc',
-                    onItemSelected = null, // Function to pass on the value of the selected item to the parent component
-                    selected = null, // Initial selected item.
-                    selReset = false,
+                    onItemSelected, // Function to pass on the value of the selected item to the parent component
+                    selected, // Initial selected item.
+                    selReset = false, // If true, selected item via parent component.
                     dropdownStyle, // Styling object with fields {color, backgroundColor, borderColor (optional), fontSize}.
-                    isDisabled = false})
+                    isDisabled = false}: DropdownPropTypes<T>) : JSX.Element
 {
+    // Enforce that dropdown items be non-null and primitive type: string|number|bigint|boolean.    
+    const primitiveTypes = ["number", "string", "boolean", "bigint"];
+    if ((data.length > 0) && (data.some(dataItem=> {
+        return ((dataItem === null) || (!primitiveTypes.includes(typeof dataItem)));
+    }))) { // Ensure that the data array contains only primitive types.
+        throw new Error(`Dropdown items must be one of ${primitiveTypes}`);
+    }
+
     const uid = useId(); // Unique ID.
     const [showItems, setShowItems] = useState(false); // true or false. Show or hide dropdown items.
     const [searchText, setSearchText] = useState('');
@@ -65,22 +77,24 @@ export function Dropdown({
             return sortedData;
 
         const searchTextUppercase = searchText.toUpperCase();
-        return sortedData.filter(item=> item.toUpperCase().includes(searchTextUppercase));
+        return sortedData.filter(item=> {
+            return (item as unknown as string).toUpperCase().includes(searchTextUppercase);
+        });
     }, [sortedData, searchText]);
 
     // Text to display in the textbox. Could be search text or currently selected item.
     const [displayValue, setDisplayValue] = useState('');
 
-    // Use to set the user selected item only!! For getting the currently selected use selectedItem.
-    const [currSelected, setCurrSelectedItem] = useState(null);
+    // Use to set the user selected item only!! For getting the currently selected item use selectedItem.
+    const [currSelected, setCurrSelectedItem] = useState<T | undefined>();
 
     // Use to get the currently selected item only!! To set the user selected item, use setCurrSelectedItem() function.
-    const selectedItem = useMemo(()=> {
+    const selectedItem = useMemo<T | undefined>((): T | undefined => {
         // If selReset is true, then always return selected (default selection).
-        // If the user has not made any selection yet, return selected (default selection).
+        // Else if the user has not made any selection yet, return selected (default selection).
         // Else return the item selected by the user (currSelectedItem).
-        let selItem = '';
-        let idx;
+        let selItem: T|undefined;
+        let idx: number = -1;
         if ((currSelected) && (selReset === false)) {
             idx = data.findIndex(item=> item === currSelected); // Ensure that the currently selected item is still in the data array.
             if (idx >= 0)
@@ -91,54 +105,60 @@ export function Dropdown({
             if (idx >= 0)
                 selItem = data[idx];
         }
-        setDisplayValue(selItem);
+        if (idx >= 0) // Check whether there is a selection, to avoid assigning undefined to the display value.
+            setDisplayValue(selItem as string);
+        else
+            setDisplayValue('');
+
         return selItem;
     }, [selReset, selected, currSelected]);
 
     const [selKey, setSelKey ] = useState(0); // Used to trigger a side-effect when the user has made a selection.
     useEffect(()=> {
         if ((selKey > 0) && (currSelected) && (onItemSelected))
-            onItemSelected(selectedItem);
+            onItemSelected(selectedItem!);
     }, [selKey]);
 
     const inputStyle = (()=> {
-        const aStyle = { 
+        const aStyle:DropdownStyle = { 
             backgroundColor: dropdownStyle?.backgroundColor,
             color: dropdownStyle?.color
         }
         if (dropdownStyle?.fontSize) {
-            aStyle.fontSize = dropdownStyle?.fontSize;
+            aStyle.fontSize = dropdownStyle.fontSize!;
         }
         return aStyle;
     })();
     const borderColor = dropdownStyle?.borderColor;
 
     /**Comparison function to be used in sorting dropdown items according to the specified sort direction */
-    function compareFn(item1, item2) {
+    function compareFn<T>(item1: T, item2: T) {
         return compare(item1, item2, sortOrder);
     }
 
     /**Respond to the user typing text to search for items */
-    function handleSearch(e) {
+    function handleSearch(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
         // As the user types, pop up the listbox with matching items, otherwise close the listbox if there's no matching items.
         setSearchText(e.target.value);
         setDisplayValue(e.target.value);        
         showList();
     } // function handleSearch(e)
 
-    async function handleItemClick(value) {
+    async function handleItemClick(value: T) {
         if (selReset) // Selected item set by the parent component. Do not allow user selection.
             return;
 
-        setDisplayValue(value);
+        setDisplayValue(value as string);
         setSearchText('');
 
         setCurrSelectedItem(value);
         hideList();
         setSelKey(prev=> prev + 1); // Trigger the side-effect to alert the parent component.
-    } // function handleItemClick(e) {
+    } // function handleItemClick(value) {
 
     function toggleShowList() {
+        if (isDisabled)
+            return;
         if (!showItems)
             showList();
         else
@@ -182,55 +202,32 @@ export function Dropdown({
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded'
                      aria-expanded={showItems} aria-controls='multiSelectionDropdown' aria-label={`${label} options`}
-                     onClick={e=> toggleShowList(e)}
+                     onClick={()=> toggleShowList()}
                 >
                     <span className='dropdown-js-arrow dropdown-js-padding'
                           aria-label={`${label} options`} aria-expanded={showItems} >{!showItems? "+" : "-"}</span>
                 </div>
             </div>
            
-            <div className={`dropdown-js-padding dropdown-js-menu ${(!showItems) && 'dropdown-js-hide'}`}
-                 id={ids.dropdown} name='dropDown' 
+            <ul className={`dropdown-js-padding dropdown-js-menu ${(!showItems) && 'dropdown-js-hide'}`}
+                 id={ids.dropdown}
                  role='listbox' aria-expanded={showItems} 
-                 disabled={isDisabled} aria-label={label} style={{...inputStyle, marginTop: '3.5px'}}
+                 aria-disabled={isDisabled} aria-label={label} style={{...inputStyle, marginTop: '3.5px'}}
             >
                 {list.map((item, index)=> {
                         return (
-                            <div name={item} key={`${index}#${item}`} 
-                                 role='option' aria-label={item}
-                                 style={{cursor: 'pointer'}} onClick={e=> handleItemClick(item)}
+                            <li key={`${index}#${item}`} role='option' aria-label={item as string}
+                                style={{cursor: 'pointer'}} onClick={()=> handleItemClick(item)}
                             >
-                                {item}
+                                {item as string}
                                 {(index < list.length - 1) &&
                                     <hr style={{borderColor: inputStyle.color}}/>
                                 }
-                            </div>
+                            </li>
                         );
                     }) // list.map(item=> {
                 }
-            </div>
+            </ul>
         </div>
     );
 }
-
-Dropdown.propTypes = {
-    label: PropTypes.string.isRequired,
-    data: PropTypes.array.isRequired,
-    sortOrder: PropTypes.string,
-    selected: PropTypes.any,
-    selReset: PropTypes.bool,
-    isDisabled: PropTypes.bool,
-    onItemSelected: PropTypes.func,
-    dropdownStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    }),
-    buttonStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    })
-};

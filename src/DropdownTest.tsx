@@ -9,6 +9,7 @@
  * 2025/12/16               1.0.0     ITA     Genesis.
  * 2026/01/11  2026/01/16   1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27   1.0.2     ITA     Added a test for selReset prop.
+ * 2026/05/11  2026/05/15   2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
  * =========================================================
 */
 
@@ -30,7 +31,7 @@ import { Dropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
 // Test type 2: local testing.
-// import { Dropdown } from './dropdowns/Dropdown';
+// import { Dropdown } from './dropdowns/Dropdown.jsx';
 
 import { useEffect, useState } from 'react';
 
@@ -56,18 +57,18 @@ const movies = [
 
 export default function DropdownTest() {
     const [output, setOutput] = useState('');
-    const [selectedInterest, setSelectedInterest] = useState();
-    const [topics, setTopics] = useState([]);
-    const [selectedTopic, setSelectedTopic] = useState(null);
+    const [selectedInterest, setSelectedInterest] = useState<string|null>(null);
+    const [topics, setTopics] = useState<string[]>([]);
+    const [selectedTopic, setSelectedTopic] = useState<string|null>(null);
 
     useEffect(()=> {
         interestSelected(interests[0]);
     }, []);
 
     /**Respond when the user has chosen an interest */
-    function interestSelected(selInterest) {
+    function interestSelected(selInterest: string) {
         if (selInterest !== selectedInterest)
-            setSelectedInterest(prev=> selInterest);
+            setSelectedInterest(()=> selInterest);
 
         // Obtain the selected items. Only 1 selection was made (size 1 array)
         let updateData;
@@ -78,14 +79,14 @@ export default function DropdownTest() {
         else // Movies selected
             updateData = movies;
 
-        setTopics(prev=> updateData);
+        setTopics(()=> updateData);
         const selTopic = updateData[0];
         topicSelected(selTopic);
         setOutput(`${selInterest} => ${selTopic}`);
     }
 
-    function topicSelected(selTopic) {
-        setSelectedTopic(prev=> selTopic);
+    function topicSelected(selTopic: string) {
+        setSelectedTopic(()=> selTopic);
         setOutput(`${selectedInterest} => ${selTopic}`);
     }
 
@@ -95,18 +96,16 @@ export default function DropdownTest() {
             <p>Select an interest, and then your topic</p>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor="interests" style={{width: '70px'}}>Choose your Interest</label>
-                <Dropdown id="interests" 
-                          label={'Interests'}
+                <Dropdown label={'Interests'}
                           data={interests}
-                          selected={selectedInterest} // Default selection.
+                          selected={selectedInterest}
                           onItemSelected={interestSelected}
                           dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor="topics" style={{width: '70px'}}>Topics</label>
-                <Dropdown id="topics"
-                          label={'Topics'}
+                <Dropdown label={'Topics'}
                           data={topics}
                           selected={selectedTopic}
                           selReset={false}

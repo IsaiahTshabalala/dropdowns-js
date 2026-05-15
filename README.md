@@ -62,6 +62,7 @@ export default function MyComponent {
   
 ## 4. Dropdown usage example
 This dropdown is to be used when the underlying data is a primitive type array.  
+***Javascript example***
 ```  
 import { Dropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css'; // styles must be imported, otherwise the dropdowns do not display properly.
@@ -99,7 +100,50 @@ export default function MyComponent() {
     );
 }
 ```  
+   
+***Typescript example***
+```  
+import { Dropdown } from 'dropdowns-js';
+import type { DropdownStyle } from 'dropdowns-js';
+import 'dropdowns-js/style.css'; // styles must be imported, otherwise the dropdowns do not display properly.
+import { useState } from 'react';
+
+export default function MyComponent() {
+    const [output, setOutput] = useState('');
+    const fruits = [ "BANANA" "ORANGE", "NAARJIE", "PEACH", "APPLE" ];
+    const myDropdownStyle: DropdownStyle = {color: '#000', backgroundColor: '#66ff66'};
+
+    /**Respond when the user has chosen a fruit */
+    function fruitSelected(selFruit: string) {
+        setOutput(selFruit);
+    }
+
+    return (
+        <div className='' style={{padding: '5px', backgroundColor: 'green'}}>
+            <h1>Dropdown Example</h1>
+            <p>Select a fruit</p>
+            <div style={{padding: '2px', display: 'flex'}}> 
+                <label htmlFor='fruits' style={{width: '70px'}}>Fruit</label>
+
+                <Dropdown
+                    label={'Fruits'}
+                    data={fruits}
+                    sortOrder='asc'
+                    onItemSelected={fruitSelected}
+                    selected={"BANANA"}
+                    dropdownStyle={myDropdownStyle}
+                />
+
+            </div>
+            <p>{output}</p>
+
+        </div>
+    );
+}
+```  
 ## 5. DropdownObj usage example
+
+***Javascript example***
 ```  
 import { DropdownObj } from 'dropdowns-js';
 import 'dropdowns-js/style.css'; // Not to be left out.
@@ -108,7 +152,7 @@ import { useState } from 'react';
 
 export default function MyComponent2() {
     const [output, setOutput] = useState('');
-    const drivingCodes = [
+    const drivingCodes: DrivingCode[] = [
         { code: 'A1', description: 'Light Motorcycles' },
         { code: 'A', description: 'Heavy Motorcycles' },
         { code: 'B', description: 'Light Vehicles' },
@@ -132,7 +176,8 @@ export default function MyComponent2() {
                 <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
 
                 <DropdownObj
-                    label='Driving Codes' data={drivingCodes}
+                    label='Driving Codes'
+                    data={drivingCodes}
                     displayName="description"
                     valueName="code"
                     sortFields={ ['description'] }
@@ -146,7 +191,69 @@ export default function MyComponent2() {
     );
 }
 ```  
-## 6. MultiselectionDropdown usage example 
+   
+
+***Typescript example***
+```  
+import { DropdownObj } from 'dropdowns-js';
+import style { DropdownStyle } from 'dropdowns-js';
+import 'dropdowns-js/style.css'; // Not to be left out.
+
+import { useState } from 'react';
+
+// Model
+interface DrivingCode {  
+  code: string;
+  description: string;
+  minAge: Number;
+};
+
+export default function MyComponent2() {
+    const [output, setOutput] = useState('');
+    const drivingCodes: DrivingCode = [
+        { code: 'A1', description: 'Light Motorcycles' },
+        { code: 'A', description: 'Heavy Motorcycles' },
+        { code: 'B', description: 'Light Vehicles' },
+        { code: 'EB', description: 'Light Articulated' },
+        { code: 'C1', description: 'Heavy Vehicles' },
+        { code: 'C', description: 'Extra Heavy Vehicles' },
+        { code: 'EC1', description: 'Heavy Articulated' },
+        { code: 'EC', description: 'Extra Heavy Articulated' }
+    ];
+
+    /**Respond when the user has chosen a driving code */
+    function drivingCodeSelected(selDrivingCode: DrivingCode) {
+        setOutput(`${selDrivingCode.code} => ${selDrivingCode.description}`);
+    }
+    const dropdownStyle: DropdownStyle = {color: '#000', backgroundColor: '#66ff66'};
+
+    return (
+        <div className='w3-container' style={{padding: '5px', backgroundColor: 'green'}}>
+            <h1>DropdownObj Example</h1>
+            <p>Select driving licence code</p>
+            <div style={{padding: '2px', display: 'flex'}}> 
+                <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
+
+                <DropdownObj
+                    label='Driving Codes'
+                    data={drivingCodes}
+                    displayName="description"
+                    valueName="code"
+                    sortFields={ ['description'] }
+                    onItemSelected={drivingCodeSelected}
+                    selected={drivingCodes[0]}
+                    dropdownStyle={dropdownStyle} />
+            </div>
+
+            <p>{output}</p>
+        </div>
+    );
+}
+```  
+   
+## 6. MultiselectionDropdown usage example  
+   
+***Javascript Example***
 ```  
 import { MultiSelectionDropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
@@ -187,8 +294,55 @@ export default function MyComponent3() {
     );
 }
 ```  
+   
+***Typescript Example***
+```  
+import { MultiSelectionDropdown } from 'dropdowns-js';
+import type { DropdownStyle, ButtonStyle } from 'dropdown-js';
+import 'dropdowns-js/style.css';
 
+import { useState } from 'react';
+
+export default function MyComponent3() {
+    const [output, setOutput] = useState('');
+    const sport = [
+        "Motor Racing", "Cycling", "Wrestling", "Kung Fu", "Boxing", "Basket Ball",
+        "Rugby", "Cricket", "Running", "Soccer", "Netball", "Hockey"
+    ];
+
+    /**Respond when the user has chosen an interest */
+    function sportsSelected(selSports: string) {
+        // Obtain the selected items.
+        const selectedSport = selSports("SPORT").join(", );
+        setOutput(selectedSport);        
+    }
+    const dropdownStyle: DropdownStyle = {color: '#000', backgroundColor: '#66ff66'};
+    const buttonStyle: ButtonStyle = {color: '#fff', backgroundColor: '#008000'};
+
+    return (
+        <div className='container' style={{padding: '5px', backgroundColor: 'green'}}>
+            <h1>MultiSelectionDropdown Example</h1>
+            <p>Select an interest, and then your topic</p>
+            <div style={{padding: '2px', display: 'flex'}}> 
+                <label htmlFor='sport' style={{width: '70px'}}>Sport</label>
+
+                <MultiSelectionDropdown
+                    label='Sport'
+                    data={sport}
+                    onItemsSelected={sportsSelected}
+                    dropdownStyle={dropdownStyle}
+                    buttonStyle={buttonStyle} />
+            </div>
+
+            <>{output}</>
+        </div>
+    );
+}
+```  
+   
 ## 7. MultiSelectionDropdownObj usage example
+   
+***Javascript Example***   
 ```  
 import 'dropdowns-js/style.css';
 import { MultiSelectionDropdownObj } from 'dropdowns-js';
@@ -213,8 +367,7 @@ export default function MyComponent4() {
     function drivCodesSelected(selDrivCode) {
         // Create a string array of driving codes.
         const strSelectedCodes = selDrivCodes.map((drivCode)=> drivCode.code)
-                                    .map(drivCode => drivCode.code)
-                                    .join(", ");
+                                             .join(", ");
         setOutput(strSelectedCodes);
     }
 
@@ -234,6 +387,72 @@ export default function MyComponent4() {
                     isDisabled={false}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />
+            </div>
+
+            {(output.length > 0) &&  
+              <div style={{ marginTop: '10px', padding: '5px' }}>
+                  {output}
+              </div>
+            }
+
+        </div>
+    );
+}
+```  
+   
+***Typescript Example***   
+```  
+import 'dropdowns-js/style.css';
+import { MultiSelectionDropdownObj } from 'dropdowns-js';
+
+import { useState } from 'react';
+
+// Model
+interface DrivingCode {  
+  code: string;
+  description: string;
+  minAge: Number;
+};
+
+export default function MyComponent4() {
+    const [output, setOutput] = useState('');
+    const drivingCodes = [
+        { code: 'A1', description: 'Light Motorcycles' },
+        { code: 'A', description: 'Heavy Motorcycles' },
+        { code: 'B', description: 'Light Vehicles' },
+        { code: 'EB', description: 'Light Articulated' },
+        { code: 'C1', description: 'Heavy Vehicles' },
+        { code: 'C', description: 'Extra Heavy Vehicles' },
+        { code: 'EC1', description: 'Heavy Articulated' },
+        { code: 'EC', description: 'Extra Heavy Articulated' }
+    ];
+
+    /**Respond when the user has chosen an interest */
+    function drivCodesSelected(selDrivCode: DrivingCode) {
+        // Create a string array of driving codes.
+        const strSelectedCodes = selDrivCodes.map((drivCode)=> drivCode.code)
+                                             .join(", ");
+        setOutput(strSelectedCodes);
+    }
+    const dropdownStyle: DropdownStyle = {color: '#000', backgroundColor: '#66ff66'};
+    const buttonStyle: ButtonStyle = {color: '#fff', backgroundColor: '#008000'};
+
+    return (
+        <div className='container' style={{padding: '5px', backgroundColor: 'green'}}>
+            <h1>MultiSelectionDropdownObj Example</h1>
+            <p>Select an interest, and then your topic</p>
+            <div style={{padding: '2px', display: 'flex'}}> 
+                <label htmlFor={'driving-licence-codes'} style={{width: '100px'}}>Lic. Codes</label>
+                <MultiSelectionDropdownObj
+                    label='Driving Licence Codes'
+                    data={drivingCodes}
+                    sortFields={ ['description'] }
+                    valueName='code'
+                    displayName='description'
+                    onItemsSelected={drivCodeSelected}
+                    isDisabled={false}
+                    dropdownStyle={dropdownStyle}
+                    buttonStyle={buttonStyle} />
             </div>
 
             {(output.length > 0) &&  

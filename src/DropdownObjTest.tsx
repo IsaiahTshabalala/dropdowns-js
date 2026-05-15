@@ -9,6 +9,7 @@
  * 2025/12/18              1.0.0     ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
+ * 2026/05/11  2026/05/15  2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
 */
 
 /** VERY IMPORTANT!!!
@@ -29,12 +30,24 @@ import { DropdownObj } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
 // Test Type 2: local import.
-// import { DropdownObj } from './dropdowns/DropdownObj';
+// import { DropdownObj } from './dropdowns/DropdownObj.jsx';
 
 import { useState } from 'react';
 
+// Models
+interface DrivingCode {  
+  code: string;
+  description: string;
+  minAge: Number;
+};
+interface Driver {
+  fullName: string;
+  licenceCode: string;
+  id: string;
+};
+
 /*======= Collections/lists to be used to illustrate how to use DropdownObj ============*/
-const drivingCodesZa = [
+const drivingCodesZa: DrivingCode[] = [
   { code: "A1", description: "Motorcycle ≤125cc", minAge: 18 },
   { code: "A", description: "Motorcycle >125cc", minAge: 16 },
   { code: "B", description: "Light motor vehicle ≤3,500kg", minAge: 18 },
@@ -45,7 +58,7 @@ const drivingCodesZa = [
   { code: "EC", description: "Heavy goods vehicle + heavy trailer", minAge: 18 }
 ];
 
-const driversData = [
+const driversData: Driver[] = [
   {
     fullName: "Thabo Mokoena",
     licenceCode: "B",
@@ -154,14 +167,12 @@ const driversData = [
 
 export default function DropdownObjTest() {
     const [output, setOutput] = useState('');
-    const [selectedDrivingCode, setSelectedDrivingCode] = useState(null);
-    const [drivers, setDrivers] = useState([]);
-    const [selectedDriver, setSelectedDriver] = useState(null);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
 
     /**Respond when the user has chosen a driving code */
-    function drivingCodeSelected(selDrivCode) {
+    function drivingCodeSelected(selDrivCode: DrivingCode) {
         // Obtain the selected items. Only 1 selection was made (size 1 array)
-        setSelectedDrivingCode(({ ...selDrivCode }));
         let updateData  = driversData.filter(driver=> {
             return driver.licenceCode === selDrivCode.code;
         });
@@ -169,12 +180,12 @@ export default function DropdownObjTest() {
         driverSelected(updateData[0]);
     }
 
-    function driverSelected(selDriver) {
+    function driverSelected(selDriver: Driver) {
         setSelectedDriver({ ...selDriver });
         updateOutput(selDriver);
     }
 
-    function updateOutput(selDriver) {
+    function updateOutput(selDriver: Driver) {
         setOutput(`${selDriver.fullName} => ${selDriver.licenceCode}`);
     }
 
@@ -186,16 +197,16 @@ export default function DropdownObjTest() {
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
                 <DropdownObj 
-                    id='driving-codes' label='Driving Codes'
+                    label='Driving Codes'
                     data={drivingCodesZa}
                     sortFields={['description', 'code']}
                     displayName="description" valueName="code"  onItemSelected={drivingCodeSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
-             <div style={{padding: '2px', display: 'flex'}}> 
+            <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driver' style={{width: '70px'}}>Drivers</label>
-                <DropdownObj id='drivers' 
+                <DropdownObj
                     label='Drivers'
                     data={drivers} 
                     selected={selectedDriver}
@@ -205,7 +216,7 @@ export default function DropdownObjTest() {
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>
 
-            <p>{output}</p>              
+            <p>{output}</p>            
 
         </div>
     );

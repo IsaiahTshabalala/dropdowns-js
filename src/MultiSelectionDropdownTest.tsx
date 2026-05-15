@@ -9,7 +9,8 @@
  * 2025/12/19              1.0.0      ITA     Genesis.
  * 2026/01/11  2026/01/16  1.0.1      ITA     Working with the MultiSelectionDropdown no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2      ITA     Added a test for selReset prop.
-  * =========================================================
+ * 2026/05/11  2026/05/15  2.0.0      ITA     Changed the file extension to .tsx and migrated to Typescript.
+ * =========================================================
  */
 
  /** VERY IMPORTANT!!!
@@ -32,7 +33,7 @@
 import { MultiSelectionDropdown } from 'dropdowns-js';
 import 'dropdowns-js/style.css';
 
-import { useState } from 'react';
+import { useState, JSX } from 'react';
 
 /*======= Collections/lists to be used to illustrate how to use a MultiselectionDropdownObj ============*/
 const interests = ["Education", "Sport", "Movies", "Cars"];
@@ -93,15 +94,15 @@ const carMakes = [
 /*=======================================================================================*/
 
 export default function MultiSelectionDropdownTest() {
-    const [output, setOutput] = useState('');
-    const [topics, setTopics] = useState([]);
-    const [selectedTopics, setSelectedTopics] = useState([]);
-    const [selectedInterests, setSelectedInterests] = useState([]);
+    const [output, setOutput] = useState<JSX.Element>(<></>);
+    const [topics, setTopics] = useState<string[]>([]);
+    const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
     /**Respond interest selection */
-    function interestSelected(pInterests) {
+    function interestSelected(pInterests: string[]) {
         setSelectedInterests(pInterests);
-        let topicUpdate = [];
+        let topicUpdate: string[] = [];
         pInterests.forEach(item=> {
             if (item === "Education") // Education selected
                 topicUpdate = [ ...topicUpdate, ...education ];
@@ -117,9 +118,9 @@ export default function MultiSelectionDropdownTest() {
     }
 
     /**Respond topic selection */
-    function topicSelected(selTopics) {
+    function topicSelected(selTopics: string[]) {
         setSelectedTopics(selTopics);
-        setOutput(prev=> (<p>{`${selectedInterests.join(", ").trim()} => `}<br/>{selTopics.join(", ")}</p>));
+        setOutput(<p>{`${selectedInterests.join(", ").trim()} => `}<br/>{selTopics.join(", ")}</p>);
     }
 
     return (

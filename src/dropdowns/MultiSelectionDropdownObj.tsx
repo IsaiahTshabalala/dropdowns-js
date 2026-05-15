@@ -19,47 +19,69 @@
  * 2026/01/20  2026/02/01  ITA    1.08    Added a 'selReset' attribute. When set to true, the dropdown updates to the default selected items when this value changes in the parent component.
  *                                        Combined list and searchItems state variables into one: list.
  *                                        Improved the logic for setting selected items.
+ * 2026/05/11  2026/05/15  ITA    2.0.0   Changed the file extension to .tsx and migrated to Typescript.
  */
-import PropTypes from 'prop-types';
-import { useState, useMemo, useId, useEffect } from 'react';
+import { useState, useMemo, useId, useEffect, JSX } from 'react';
 import './dropdown.css';
-import { getPaths as getObjPaths, objCompare } from 'some-common-functions-js';
+import { getPaths as getObjPaths, isPlainObject, objCompare } from 'some-common-functions-js';
+import type { ButtonStyle, DropdownStyle } from './dropdowns.models.js';
 
-/** Provide a multi-selection, searchable dropdown that takes an array of objects.
- * @param {String} label for screen readers.
- * @param {Array<Object>} data An array of objects to display in the multiselection dropdown.
- * @param {string} sortFields An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
- * @param {Array<Object>} [selectedData=[]] pre-set array of selected items. Optional.
- * @param {boolean} [selReset=false] When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
- * @param {String} displayName the name of the field that will be used for displaying items in the dropdown.
- * @param {String} valueName  // the name of the field that will be used as the underlying unique value of each list item.
- * @param {Number} [maxNumSelections=null] allowed maximum number of selections. Optional.
- * @param {Boolean} [isDisabled=false] optional. Set to true if you want to disable component.
- * @param {null} [onItemsSelected=null] Callback function to call when selection is complete. Optional.
- * @param {Object} dropdownStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional)
- * @param {Object} buttonStyle styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional) 
-*/
-export function MultiSelectionDropdownObj({
+interface MultiSelectionDropdownObjPropType<T> {
+    label: string; // For screen readers.
+    data: NonNullable<T>[]; // An array of objects to display in the multiselection dropdown.
+    sortFields: string[]; // An array specifiying the field plus sort order. e.g. [ 'score desc', 'lastName asc', 'firstName asc' ]
+    selectedData?: NonNullable<T>[]; // Pre-set array of selected items. Optional.
+    selReset?: boolean; // When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
+    displayName: string; // The name of the field that will be used for displaying items in the dropdown.
+    valueName: string;  // the name of the field that will be used as the underlying unique value of each list item.
+    maxNumSelections?: number | null; // Allowed maximum number of selections. Optional.
+    isDisabled?: boolean; // Optional. Set to true if you want to disable component.
+    onItemsSelected?: (selItems: T[])=> void; // Callback function to call when selection is complete. Optional.
+    dropdownStyle: DropdownStyle; // Styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
+    buttonStyle: ButtonStyle; // Styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
+};
+
+/** Provide a multi-selection, searchable dropdown that takes an array of plain objects. */
+export function MultiSelectionDropdownObj<T extends object>({
                     label, // label with which to describe the dropdown.
                     data,
                     sortFields,
                     selectedData = [],
                     selReset = false,
-                    maxNumSelections = null,
+                    maxNumSelections,
                     displayName, // the name of the field that will be used for displaying the list items to the user.
                     valueName, // the name of the field that will be used as the underlying unique value of each list item.
-                    isDisabled = false,
-                    onItemsSelected = null,
+                    isDisabled,
+                    onItemsSelected,
                     dropdownStyle,
                     buttonStyle
-                }) // If provided, use this function for sorting. Otherwise sort by displayName field.
-{  
+                }: MultiSelectionDropdownObjPropType<T>): JSX.Element 
+{
+    useState<boolean>(
+        ()=> {
+            data.forEach((item: T)=> {
+                if (!isPlainObject(item)) { // Check against existence of non-plain objects.
+                    throw new Error("[Dropdowns-js] Non plain object found");
+                }
+                const keys = Object.keys(item);
+                if (!keys.includes(displayName)) { // Check against use of a non-existent field as displayName.
+                    throw new Error(`[Dropdowns-js] displayName field ${displayName} not found`);
+                }
+                if (!keys.includes(valueName)) { // Check against use of a non-existent field as valueName.
+                    throw new Error(`[Dropdowns-js] valueName field ${valueName} not found`);
+                }
+            });
+            return true;
+        }
+    );
+
     const uid = useId(); // unique id.
     const [showItems, setShowItems] = useState(false); // true or false. Show or hide
 
     // field paths of the objects in the data array.
-    const fieldPaths = useMemo(()=> (data.length > 0? getObjPaths(data[0]) : []), [data]);
-
+    const fieldPaths = useMemo<string[]>(()=> {
+        return (data.length > 0? getObjPaths(data[0]) : []);
+    }, [data]);
     const [searchText, setSearchText] = useState('');
 
     // Store dropdown input data as sorted.
@@ -70,7 +92,7 @@ export function MultiSelectionDropdownObj({
     const [selKey, setSelKey] = useState(0); // If greater than 0, an indicator that the user has completed a selection.
 
     // Set items selected by the user.
-    const [currentSelection, setCurrentSelection] = useState(null); // Use to set the user selection items only!! To get selected items, use selectedItems.
+    const [currentSelection, setCurrentSelection] = useState<T[]>([]); // Use to set the user selection items only!! To get selected items, use selectedItems.
 
     const selectedItems = useMemo(()=> {        
         // If selReset is true, then always return the default selected items (selectedData).
@@ -104,13 +126,13 @@ export function MultiSelectionDropdownObj({
             return sortedData;
 
         return sortedData.filter(item=> {
-            const itemValue = item[displayName].toUpperCase();
+            const itemValue = (item[displayName as keyof T] as unknown as string).toUpperCase();
             return itemValue.includes(searchTextUpperCase);
         });
     }, [searchText, sortedData]);
  
     const inputStyle = (()=> {
-        const aStyle = { 
+        const aStyle: DropdownStyle = { 
             backgroundColor: dropdownStyle?.backgroundColor,
             color: dropdownStyle?.color
         }
@@ -122,18 +144,18 @@ export function MultiSelectionDropdownObj({
     const borderColor = dropdownStyle?.borderColor;
 
     /**Comparison function for sorting items. */
-    function compareFn(item1, item2) {
+    function compareFn(item1: T, item2: T) {
         return objCompare(item1, item2, ...sortFields);
     }
 
     /**Respond to the user typing text to search for matching items. */
-    function handleSearch(e) {
+    function handleSearch(e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) {
         // As the user types, pop up the listbox with matching items. Close the listbox if there's no matching items.
         setSearchText(e.target.value);
         showList();
     } // function handleSearch(e)
 
-    function handleItemClick(clickedItem) {
+    function handleItemClick(clickedItem: T) {
         if (selReset) // Selected items set by the parent component. Do not allow user selection.
             return;
         
@@ -143,7 +165,7 @@ export function MultiSelectionDropdownObj({
                 (objCompare(selItem, clickedItem, ...fieldPaths) === 0)
             ))) {
                 // Allow item selection only if maxNumSelections has not been reached.
-                if (maxNumSelections === null || tempSelected.length < maxNumSelections)
+                if (maxNumSelections === null || (maxNumSelections && tempSelected.length < maxNumSelections))
                     tempSelected.push(clickedItem);
             }
             else {  // if (selected(clickedItem)) // Amongst selected items.
@@ -156,14 +178,14 @@ export function MultiSelectionDropdownObj({
         });
     } // function handleItemClick(clickedItem) {
     
-    function isSelected(item) {
+    function isSelected(item: T) {
         // Check whether an item is found in the list of selected items.
         return selectedItems.some(selectedItem=> {
             return (objCompare(selectedItem, item, ...fieldPaths) === 0);
         });
     } // function isSelected(item) {
 
-    function removeItem(itemToRemove) {
+    function removeItem(itemToRemove: T) {
         if (selReset) // Selected items set by the parent component. Do not allow user selection.
             return;
         
@@ -227,7 +249,7 @@ export function MultiSelectionDropdownObj({
                 
                 <div className='dropdown-js-arrow-container dropdown-js-padding dropdown-js-rounded'
                      aria-expanded={showItems} aria-controls='multiSelectionDropdownObj' aria-label={`${label} options`}
-                     onClick={e=> toggleShowList(e)}>
+                     onClick={()=> toggleShowList()}>
                     <span className='dropdown-js-arrow dropdown-js-padding'>{!showItems? "+" : "-"}</span>
                 </div>
             </div>
@@ -235,13 +257,14 @@ export function MultiSelectionDropdownObj({
             { /* Selected items */}
             <div className='dropdown-js-padding dropdown-js-selected-wrapper dropdown-js-selected-container'>
                 <div id={ids.selectedItems} className='dropdown-js-selected-items'
-                     aria-label={`Selected ${label} options`} aria-multiselectable={true} aria-live='polite' >
+                    aria-label={`Selected ${label} options`} aria-multiselectable={true} aria-live='polite' >
                     {selectedItems.map(item=> {                            
-                            return ( 
-                                <span key={`${item[valueName]}${item[displayName]}`} className='dropdown-js-padding dropdown-js-rounded' 
-                                    aria-label={`${item[displayName]}`}
+                            return (
+                                <span key={`${item[valueName as keyof T]}${item[displayName as keyof T]}`} className='dropdown-js-padding dropdown-js-rounded' 
+                                    aria-label={`${item[displayName as keyof T]}`}
                                     style={{...inputStyle, margin: '3.5px', marginRight: '0px'}}>
-                                    {item[displayName]} <span className='dropdown-js-padding' style={{cursor: 'pointer'}} aria-label={`Remove ${item[displayName]}`} onClick={e=> removeItem(item)}>{"\u00D7"}</span>
+                                    {item[displayName as keyof T] as unknown as string} <span className='dropdown-js-padding' style={{cursor: 'pointer'}}
+                                    aria-label={`Remove ${item[displayName as keyof T]}`} onClick={()=> removeItem(item)}>{"\u00D7"}</span>
                                 </span>
                             );
                         })
@@ -251,15 +274,16 @@ export function MultiSelectionDropdownObj({
 
             { /* Dropdown items */}            
             <div className={`dropdown-js-padding dropdown-js-menu dropdown-js-rounded ${(!showItems) && 'dropdown-js-hide'}`}
-                 style={inputStyle} id={ids.multiSelectionDropdownObj} name='multiSelectionDropdownObj'
+                 style={inputStyle} id={ids.multiSelectionDropdownObj}
                  role='listbox' aria-multiselectable={true} aria-expanded={showItems}  >
                 {list.map((item)=> {
                                     return (
-                                        <div key={`${item[valueName]}${item[displayName]}`} >
-                                            <input id={`${item[valueName]}Checkbox`} type='checkbox'name={`${item[displayName]}Checkbox`}
-                                                    role='option' aria-label={`${item[displayName]}`} aria-checked={isSelected(item)}
-                                                    style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={e=> handleItemClick(item)} value={item[valueName]} />
-                                            <label style={{marginLeft: '5px'}} htmlFor={`${item[valueName]}`}>{item[displayName]}</label>
+                                        <div key={`${item[valueName as keyof T]}${item[displayName as keyof T]}`} >
+                                            <input id={`${item[valueName as keyof T]}Checkbox`} type='checkbox'name={`${item[displayName as keyof T]}Checkbox`}
+                                                    role='option' aria-label={`${item[displayName as keyof T]}`} aria-checked={isSelected(item)}
+                                                    style={{cursor: 'pointer'}} checked={isSelected(item)} onChange={()=> handleItemClick(item)}
+                                                    value={item[valueName as keyof T] as unknown as string} />
+                                            <label style={{marginLeft: '5px'}} htmlFor={`${item[valueName as keyof T]}`}>{item[displayName as keyof T] as unknown as string}</label>
                                             <hr style={{ backgroundColor: inputStyle.color, border: 'none', height: '0.5px'}}/>
                                         </div>
                                     );
@@ -267,35 +291,10 @@ export function MultiSelectionDropdownObj({
                 }
 
                 <button className='dropdown-js-padding dropdown-js-round' style={buttonStyle}
-                    title='Done' aria-label={`Close ${label} options`} onClick={e=> hideList()} type='button'>
+                    title='Done' aria-label={`Close ${label} options`} onClick={()=> hideList()} type='button'>
                     Done
                 </button>
             </div>
         </div>
     );
 }
-
-MultiSelectionDropdownObj.propTypes = {
-    label: PropTypes.string.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    sortFields: PropTypes.arrayOf(PropTypes.string).isRequired,
-    selectedData: PropTypes.arrayOf(PropTypes.object),
-    selReset: PropTypes.bool,
-    maxNumSelections: PropTypes.number,
-    displayName: PropTypes.string.isRequired,               
-    valueName: PropTypes.string.isRequired,
-    isDisabled: PropTypes.bool,
-    onItemsSelected: PropTypes.func,
-    dropdownStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    }),
-    buttonStyle: PropTypes.shape({
-        color: PropTypes.string.isRequired, // text color
-        backgroundColor: PropTypes.string.isRequired,
-        fontSize: PropTypes.string,
-        borderColor: PropTypes.string
-    })
-};

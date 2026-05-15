@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "preserveSymlinks": true,
+    "paths": {
+      "react": ["./node_modules/react"],
+      "react/*": ["./node_modules/react/*"]
+    },
+    /* Base Options */
+    "target": "esnext",
+    "module": "nodenext",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "react-jsx", // Modern JSX transform (no need to import React)
+    
+    "allowJs": true, // Allow JavaScript files to be compiled
+    "checkJs": true, // Enable type checking for JavaScript files
+
+    /* Module Resolution */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Output Settings */
+    "outDir": "./dist",
+    "declaration": true, // Generates .d.ts files for your users
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist/types", 
+    "sourceMap": false, // Keep it lean as we discussed
+    "removeComments": false, // Keep comments for JSDoc/Intellisense
+    
+    /* Library Specifics */
+    "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/App.tsx", "./src/main.jsx"]
+}
