@@ -5,9 +5,16 @@
     "emitDeclarationOnly": true,
     "declarationDir": "./dist/types"
   },
-  "include": ["src/**/*"],
+  "files": ["./src/vite-env.d.ts"],
+  "include": ["./src/**/*"],
   "exclude": [
-    "./src/DropdownTest.tsx", "./src/DropdownObjTest.tsx", "./src/MultiSelectionDropdownTest.tsx",
+    "./node_modules",
+    "./dist",
+    "./src/main.tsx",
+    "./src/App.tsx",
+    "./src/DropdownTest.tsx", 
+    "./src/DropdownObjTest.tsx", 
+    "./src/MultiSelectionDropdownTest.tsx",
     "./src/MultiSelectionDropdownObjTest.tsx"
   ]
 }

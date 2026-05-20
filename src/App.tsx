@@ -9,7 +9,7 @@
 import DropdownTest from "./DropdownTest.jsx";
 // import DropdownObjTest from "./DropdownObjTest.jsx";
 // import MultiSelectionDropdownTest from "./MultiSelectionDropdownTest.jsx";
-import MultiSelectionDropdownObjTest from "./MultiSelectionDropdownObjTest.jsx";
+// import MultiSelectionDropdownObjTest from "./MultiSelectionDropdownObjTest.jsx";
 
 function App() {
     return (

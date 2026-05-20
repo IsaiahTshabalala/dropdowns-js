@@ -9,6 +9,7 @@
     /* Base Options */
     "target": "esnext",
     "module": "nodenext",
+    "customConditions": ["dev"],     // <-- Add this to help Vite handle assets
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "react-jsx", // Modern JSX transform (no need to import React)
     
@@ -38,6 +39,6 @@
     "moduleDetection": "force",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/App.tsx", "./src/main.jsx"]
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules", "./dist", "./src/App.tsx", "./src/main.tsx"]
 }

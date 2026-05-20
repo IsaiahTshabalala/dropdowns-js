@@ -62,3 +62,6 @@ Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelect
 
 ## 2026/05/20 to 2026/05/20 - Version 2.0.1 - ITA
 * Removed the prop-types package -- no longer used.
+
+## 2026/05/20 to 2026/05/20 - Version 2.0.2 - ITA
+* Ensured that finally, only the core package files are part of the build output.

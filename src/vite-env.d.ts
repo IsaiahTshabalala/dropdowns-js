@@ -1,4 +1,4 @@
-/**
+/*
  * File: ./src/declarations.d.ts
  * --------------------------------------------------------------------------------
  * Description: 
@@ -14,4 +14,7 @@ declare module '*.css'{
     };
     export default content;
 };
-declare module 'react-dom/client';
+
+// NEW: For raw side-effect styles (like import './index.css')
+declare module "*/index.css";
+declare module "*.css";
