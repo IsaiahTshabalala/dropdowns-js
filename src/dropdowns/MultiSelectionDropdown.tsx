@@ -21,6 +21,7 @@
  *                                            Combined searchItems and list state variables into one: list.
  *                                            Improved the logic for setting selected items.
  * 2026/05/11  2026/05/15    ITA    2.0.0     Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30    ITA    2.0.1     Ensured that this dropdown retains the selected items when it is unmounted and then remounted.
  */
 import { useState, useMemo, useId, useEffect, JSX } from 'react';
 import { DropdownStyle, ButtonStyle } from './dropdowns.models.js';
@@ -74,7 +75,7 @@ export function MultiSelectionDropdown<T extends number | string | bigint | bool
     const [searchText, setSearchText] = useState('');
 
     // Use to set user selected items only!! To get selected items, use selectedItems.
-    const [currentSelection, setCurrentSelection] = useState<T[]>([]);
+    const [currentSelection, setCurrentSelection] = useState<T[] | null>(null);
 
     // Use to get selected items only!! To set selected items, use setCurrentSelection() function.
     const selectedItems = useMemo(()=> {

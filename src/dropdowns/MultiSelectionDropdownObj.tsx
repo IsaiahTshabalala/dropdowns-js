@@ -20,6 +20,7 @@
  *                                        Combined list and searchItems state variables into one: list.
  *                                        Improved the logic for setting selected items.
  * 2026/05/11  2026/05/15  ITA    2.0.0   Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30  ITA    2.0.1   Ensured that this dropdown retains the selected items when it is unmounted and then remounted.
  */
 import { useState, useMemo, useId, useEffect, JSX } from 'react';
 import './dropdown.css';
@@ -34,7 +35,7 @@ interface MultiSelectionDropdownObjPropType<T> {
     selReset?: boolean; // When set to true, the dropdown resets to the default selected items when they are updated in the parent component.
     displayName: string; // The name of the field that will be used for displaying items in the dropdown.
     valueName: string;  // the name of the field that will be used as the underlying unique value of each list item.
-    maxNumSelections?: number | null; // Allowed maximum number of selections. Optional.
+    maxNumSelections?: number; // Allowed maximum number of selections. Optional.
     isDisabled?: boolean; // Optional. Set to true if you want to disable component.
     onItemsSelected?: (selItems: T[])=> void; // Callback function to call when selection is complete. Optional.
     dropdownStyle: DropdownStyle; // Styling object with attributes color, backgroundColor, fontSize (optional), borderColor (optional).
@@ -92,7 +93,7 @@ export function MultiSelectionDropdownObj<T extends object>({
     const [selKey, setSelKey] = useState(0); // If greater than 0, an indicator that the user has completed a selection.
 
     // Set items selected by the user.
-    const [currentSelection, setCurrentSelection] = useState<T[]>([]); // Use to set the user selection items only!! To get selected items, use selectedItems.
+    const [currentSelection, setCurrentSelection] = useState<T[] | null>(null); // Use to set the user selection items only!! To get selected items, use selectedItems.
 
     const selectedItems = useMemo(()=> {        
         // If selReset is true, then always return the default selected items (selectedData).

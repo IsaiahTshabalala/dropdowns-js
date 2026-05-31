@@ -10,6 +10,7 @@
  * 2026/01/11  2026/01/16  1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
  * 2026/05/11  2026/05/15  2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30  2.0.1     ITA     Added a test to ensure that the DropdownObj retains the selected item when it is unmounted and the remounted.
 */
 
 /** VERY IMPORTANT!!!
@@ -169,6 +170,8 @@ export default function DropdownObjTest() {
     const [output, setOutput] = useState('');
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+    const [selectedDrivCode, setSelectedDrivCode] = useState<DrivingCode | null>(null);
+    const [showDropdown, setShowDropdown] = useState(true);
 
     /**Respond when the user has chosen a driving code */
     function drivingCodeSelected(selDrivCode: DrivingCode) {
@@ -176,6 +179,7 @@ export default function DropdownObjTest() {
         let updateData  = driversData.filter(driver=> {
             return driver.licenceCode === selDrivCode.code;
         });
+        setSelectedDrivCode(selDrivCode);
         setDrivers(updateData);
         driverSelected(updateData[0]);
     }
@@ -193,14 +197,23 @@ export default function DropdownObjTest() {
         <div className='w3-container' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>DropdownObj Example</h1>
             <p>Select a driving code, and then a driver</p>
-            
+
+            <button onClick={()=> setShowDropdown(!showDropdown)} style={{marginBottom: '10px'}}>
+                {showDropdown ? 'Hide' : 'Show'} Dropdowns
+            </button>
+
+            {showDropdown &&
+            <>            
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes' style={{width: '70px'}}>Driving Codes</label>
                 <DropdownObj 
                     label='Driving Codes'
                     data={drivingCodesZa}
+                    selected={selectedDrivCode}
                     sortFields={['description', 'code']}
-                    displayName="description" valueName="code"  onItemSelected={drivingCodeSelected}
+                    displayName="description"
+                    valueName="code"
+                    onItemSelected={drivingCodeSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />
             </div>
 
@@ -215,6 +228,8 @@ export default function DropdownObjTest() {
                     displayName="fullName" valueName="id" onItemSelected={driverSelected}
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>
+            </>
+            }
 
             <p>{output}</p>            
 

@@ -65,3 +65,6 @@ Dropdown: Corrected proptypes to include onItemSelected instead of onItemsSelect
 
 ## 2026/05/20 to 2026/05/20 - Version 2.0.2 - ITA
 * Ensured that finally, only the core package files are part of the build output.
+
+## 2026/05/30 to 2026/05/20 - Version 2.03 - ITA
+* Ensured that the dropdowns retain their selected items when unmounted and then remounted.

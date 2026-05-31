@@ -10,6 +10,7 @@
  * 2026/01/11  2026/01/16  1.0.1     ITA     Working with MultiSelectionObj dropdown no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2     ITA     Added a test for selReset prop.
  * 2026/05/11  2026/05/15  2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30  2.0.1     ITA     Added tests to ensure that the MultiselectionDropdownObj retains the selected items when it is unmounted and then remounted.
  * ==========================================================
 */
 
@@ -166,18 +167,19 @@ const drivers: Driver[] = [
 
 /*=======================================================================================*/
 export default function MultiSelectionDropdownObjTest() {
+    const [selectedDrivCodes, setSelectedDrivCodes] = useState<DrivingCode[]>([]);
     const [driversPerLicenceCode, setDriversPerLicenceCode] = useState<Driver[]>([]);
     const [selectedDrivers, setSelectedDrivers] = useState<Driver[]>([]);
     const [output, setOutput] = useState<string>('');
+    const [showDropdown, setShowDropdown] = useState<boolean>(true);
 
     /**Respond when the user has chosen driving codes */
     function drivingCodesSelected(drivCodes: DrivingCode[]) {
-        // Create a string array of driving codes.
-        const strSelectedCodes = drivCodes.map((drivCode)=> drivCode.code);
+        // Get drivers with the selected driving codes.
         const updateData = drivers.filter(driver=> {
-            return strSelectedCodes.includes(driver.licenceCode);
+            return drivCodes.some(drivCode=> (drivCode.code === driver.licenceCode));
         });    
-
+        setSelectedDrivCodes(drivCodes);
         setDriversPerLicenceCode(updateData);
         setSelectedDrivers(updateData);
     }
@@ -191,11 +193,19 @@ export default function MultiSelectionDropdownObjTest() {
         <div className='container' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>MultiSelectionDropdownObj Example</h1>
             <p>Choose the driving licence codes, and then pick your drivers</p>
+            
+            <button onClick={()=> setShowDropdown(!showDropdown)} style={{marginBottom: '10px'}}>
+                {showDropdown ? 'Hide' : 'Show'} Dropdowns
+            </button>
+
+            {showDropdown && 
+            <>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor='driving-codes-dropdown' style={{width: '100px'}}>Lic. Codes</label>
                 <MultiSelectionDropdownObj
                     label='Driving Licence Codes'
                     data={drivingCodesZA}
+                    selectedData={selectedDrivCodes}
                     sortFields={['description']}
                     valueName='code'
                     displayName='description'
@@ -221,6 +231,8 @@ export default function MultiSelectionDropdownObjTest() {
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               
             </div>
+            </>
+            }
 
             {output &&  
               <div style={{ marginTop: '10px', padding: '5px' }}>

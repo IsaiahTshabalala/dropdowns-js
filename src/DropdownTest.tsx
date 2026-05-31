@@ -10,6 +10,7 @@
  * 2026/01/11  2026/01/16   1.0.1     ITA     Use of the Dropdown component no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27   1.0.2     ITA     Added a test for selReset prop.
  * 2026/05/11  2026/05/15   2.0.0     ITA     Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30   2.0.1     ITA     Added a test to ensure that the Dropdown retains the selected item when it is unmounted and then remounted.
  * =========================================================
 */
 
@@ -60,6 +61,7 @@ export default function DropdownTest() {
     const [selectedInterest, setSelectedInterest] = useState<string|null>(null);
     const [topics, setTopics] = useState<string[]>([]);
     const [selectedTopic, setSelectedTopic] = useState<string|null>(null);
+    const [showDropdowns, setShowDropdowns] = useState(true);
 
     useEffect(()=> {
         interestSelected(interests[0]);
@@ -68,7 +70,7 @@ export default function DropdownTest() {
     /**Respond when the user has chosen an interest */
     function interestSelected(selInterest: string) {
         if (selInterest !== selectedInterest)
-            setSelectedInterest(()=> selInterest);
+            setSelectedInterest((/*prev*/)=> selInterest);
 
         // Obtain the selected items. Only 1 selection was made (size 1 array)
         let updateData;
@@ -79,7 +81,7 @@ export default function DropdownTest() {
         else // Movies selected
             updateData = movies;
 
-        setTopics(()=> updateData);
+        setTopics((/*prev*/)=> updateData);
         const selTopic = updateData[0];
         topicSelected(selTopic);
         setOutput(`${selInterest} => ${selTopic}`);
@@ -94,6 +96,13 @@ export default function DropdownTest() {
         <div className='' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>Dropdown Example</h1>
             <p>Select an interest, and then your topic</p>
+
+            <button onClick={()=> setShowDropdowns(!showDropdowns)} style={{marginBottom: '10px'}}>
+                {showDropdowns ? 'Hide' : 'Show'} Dropdowns
+            </button>
+
+            {showDropdowns &&
+            <>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label htmlFor="interests" style={{width: '70px'}}>Choose your Interest</label>
                 <Dropdown label={'Interests'}
@@ -112,6 +121,8 @@ export default function DropdownTest() {
                           onItemSelected={topicSelected}
                           dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}} />               
             </div>
+            </>
+            }
 
             <p>{output}</p>
 

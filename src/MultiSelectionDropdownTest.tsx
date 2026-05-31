@@ -10,6 +10,7 @@
  * 2026/01/11  2026/01/16  1.0.1      ITA     Working with the MultiSelectionDropdown no longer requires a Collections context provider.
  * 2026/01/20  2026/01/27  1.0.2      ITA     Added a test for selReset prop.
  * 2026/05/11  2026/05/15  2.0.0      ITA     Changed the file extension to .tsx and migrated to Typescript.
+ * 2026/05/30  2026/05/30  2.0.1      ITA     Added a test to ensure that the MultiselectionDropdown retains its selected items when it is unmounted and then remounted.
  * =========================================================
  */
 
@@ -98,6 +99,7 @@ export default function MultiSelectionDropdownTest() {
     const [topics, setTopics] = useState<string[]>([]);
     const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+    const [showDropdowns, setShowDropdowns] = useState(true);
 
     /**Respond interest selection */
     function interestSelected(pInterests: string[]) {
@@ -127,11 +129,19 @@ export default function MultiSelectionDropdownTest() {
         <div className='container' style={{padding: '5px', backgroundColor: 'green'}}>
             <h1>MultiSelectionDropdown Example</h1>
             <p>Select an interest, and then your topic</p>
+            
+            <button onClick={()=> setShowDropdowns(!showDropdowns)} style={{marginBottom: '10px'}}>
+                {showDropdowns ? 'Hide' : 'Show'} Dropdowns
+            </button>
+
+            {showDropdowns &&
+            <>
             <div style={{padding: '2px', display: 'flex'}}> 
                 <label style={{width: '70px'}}>Choose your interest</label>
                 <MultiSelectionDropdown
                     label='Interests'
                     data={interests}
+                    selectedData={selectedInterests}
                     sortOrder='desc'
                     maxNumSelections={2}
                     onItemsSelected={interestSelected}
@@ -151,6 +161,8 @@ export default function MultiSelectionDropdownTest() {
                     dropdownStyle={{color: '#000', backgroundColor: '#66ff66'}}                     
                     buttonStyle={{color: '#fff', backgroundColor: '#008000'}} />               
             </div>
+            </>
+            }
 
             <>{output}</>
 
